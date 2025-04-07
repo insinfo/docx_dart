@@ -1,0 +1,1 @@
+library docx_dart;

@@ -1,0 +1,14 @@
+name: docx_dart
+version: 1.0.0
+
+environment:
+  sdk: ^3.6.0
+
+dependencies: 
+  xml: ^6.5.0
+  archive: ^4.0.5
+  intl: any
+
+dev_dependencies: 
+  test: any
+  
