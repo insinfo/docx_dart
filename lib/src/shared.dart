@@ -3,8 +3,6 @@
 ///
 /// Shared objects and base types used across docx modules.
 
-
-
 import 'package:meta/meta.dart'; // For @internal
 
 // Import necessary types. Use placeholder types if the actual classes aren't defined yet.
@@ -86,10 +84,9 @@ class Length implements Comparable<Length> {
 
   /// Integer division.
   Length operator ~/(num divisor) {
-     if (divisor == 0) throw ArgumentError('Division by zero');
+    if (divisor == 0) throw ArgumentError('Division by zero');
     return Length(emu ~/ divisor);
   }
-
 
   @override
   int get hashCode => emu.hashCode;
@@ -134,7 +131,6 @@ class Twips extends Length {
   Twips(num twips) : super((twips * Length._emusPerTwip).round());
 }
 
-
 /// Immutable value object defining a particular RGB color.
 @immutable
 class RGBColor {
@@ -169,8 +165,7 @@ class RGBColor {
 
   /// Returns the hex string representation (e.g., "3C2F80"). Uppercase.
   @override
-  String toString() =>
-      '${r.toRadixString(16).toUpperCase().padLeft(2, '0')}'
+  String toString() => '${r.toRadixString(16).toUpperCase().padLeft(2, '0')}'
       '${g.toRadixString(16).toUpperCase().padLeft(2, '0')}'
       '${b.toRadixString(16).toUpperCase().padLeft(2, '0')}';
 
@@ -207,7 +202,6 @@ class RGBColor {
 // write_only_property: Not a standard Dart concept. Use a setter without a getter.
 // void set writeOnlyValue(String value) { /* ... */ }
 
-
 /// Base class for proxy objects wrapping an underlying Open XML element.
 /// Provides access to the element and its containing part.
 class ElementProxy {
@@ -223,7 +217,8 @@ class ElementProxy {
   XmlPart get part {
     final parent = _parent; // Use local variable for null safety check
     if (parent == null) {
-      throw StateError("part is not accessible from this element proxy (no parent context)");
+      throw StateError(
+          "part is not accessible from this element proxy (no parent context)");
     }
     return parent.part;
   }
@@ -238,7 +233,6 @@ class ElementProxy {
   @override
   int get hashCode => element.hashCode;
 }
-
 
 /// Base class for objects that have a parent providing access to the part.
 /// Used for elements below the part level that might need part services.
@@ -264,7 +258,6 @@ class StoryChild {
   StoryPart get part => parent.part;
 }
 
-
 /// Accumulates string fragments and joins them with a separator on demand.
 class TextAccumulator {
   final String _separator;
@@ -280,27 +273,27 @@ class TextAccumulator {
 
   /// Returns the accumulated text joined by the separator and clears the buffer.
   /// Returns `null` if no text has been accumulated.
-  String? pop() {
+  List<String> pop() { // Changed return type to List<String>
     if (_texts.isEmpty) {
-      return null;
+      return []; // Return empty list instead of null
     }
     final text = _texts.join(_separator);
     _texts.clear();
-    return text;
+    return [text]; // Return list containing the single string
   }
 
-   /// Returns the accumulated text joined by the separator *without* clearing the buffer.
-   /// Returns `null` if no text has been accumulated.
-   String? peek() {
-      if (_texts.isEmpty) {
-         return null;
-      }
-      return _texts.join(_separator);
-   }
+  /// Returns the accumulated text joined by the separator *without* clearing the buffer.
+  /// Returns `null` if no text has been accumulated.
+  String? peek() {
+    if (_texts.isEmpty) {
+      return null;
+    }
+    return _texts.join(_separator);
+  }
 
-   /// Checks if any text has been accumulated.
-   bool get isEmpty => _texts.isEmpty;
-   bool get isNotEmpty => _texts.isNotEmpty;
+  /// Checks if any text has been accumulated.
+  bool get isEmpty => _texts.isEmpty;
+  bool get isNotEmpty => _texts.isNotEmpty;
 }
 
 // Note: BlockItemElement is a Python TypeAlias referring to specific XML elements.

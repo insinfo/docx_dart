@@ -6,8 +6,6 @@
 /// attributes. Naming generally corresponds to the simple type in the associated XML
 /// schema.
 
-
-
 import 'package:docx_dart/src/enum/dml.dart';
 import 'package:docx_dart/src/enum/text.dart';
 
@@ -328,7 +326,8 @@ class ST_HexColorConverter implements BaseSimpleType<Object> {
       return ST_HexColorAuto.AUTO;
     }
     // Should not happen if validate passes
-    throw ArgumentError('Unexpected value type for ST_HexColor: ${value.runtimeType}');
+    throw ArgumentError(
+        'Unexpected value type for ST_HexColor: ${value.runtimeType}');
   }
 
   @override
@@ -345,7 +344,6 @@ class ST_HexColorConverter implements BaseSimpleType<Object> {
 }
 
 final stHexColorConverter = ST_HexColorConverter();
-
 
 /// Half-point measure, e.g., XML "24" represents 12 points.
 class ST_HpsMeasureConverter implements BaseSimpleType<Length> {
@@ -521,7 +519,6 @@ class ST_TwipsMeasureConverter implements BaseSimpleType<Length> {
   static final _stUniversalMeasureConverter = ST_UniversalMeasureConverter();
   static final _xsdUnsignedLongConverter = XsdUnsignedLongConverter();
 
-
   @override
   Length fromXml(String xmlValue) {
     if (_universalMeasurePattern.hasMatch(xmlValue)) {
@@ -530,7 +527,7 @@ class ST_TwipsMeasureConverter implements BaseSimpleType<Length> {
     // Assume twips if no unit suffix
     final twipsValue = int.tryParse(xmlValue);
     if (twipsValue == null) {
-       throw InvalidXmlError("Cannot parse unsigned twips value '$xmlValue'");
+      throw InvalidXmlError("Cannot parse unsigned twips value '$xmlValue'");
     }
     // Use unsigned long validation (practical range)
     _xsdUnsignedLongConverter.validate(twipsValue);
@@ -577,12 +574,12 @@ class ST_UniversalMeasureConverter implements BaseSimpleType<Length> {
 
     final quantity = double.tryParse(valueStr);
     if (quantity == null) {
-       throw InvalidXmlError(
+      throw InvalidXmlError(
           "Cannot parse numeric part '$valueStr' in '$xmlValue'");
     }
     final multiplier = _unitMultipliers[unit];
     if (multiplier == null) {
-       // Should not happen if regex matched, but defensive check
+      // Should not happen if regex matched, but defensive check
       throw InvalidXmlError("Unknown unit '$unit' in '$xmlValue'");
     }
     // Use round() before casting to int for better precision
@@ -615,9 +612,6 @@ class ST_VerticalAlignRunConverter extends _BaseStringEnumConverter {
 }
 
 final stVerticalAlignRunConverter = ST_VerticalAlignRunConverter();
-
-
-
 
 // Conversor para WD_UNDERLINE
 class WD_UNDERLINE_Converter implements BaseSimpleType<WD_UNDERLINE> {
@@ -674,8 +668,6 @@ class WD_COLOR_INDEX_Converter implements BaseSimpleType<WD_COLOR_INDEX> {
 }
 
 final wdColorIndexConverter = WD_COLOR_INDEX_Converter();
-
-
 
 class MSO_THEME_COLOR_INDEX_Converter
     implements BaseSimpleType<MSO_THEME_COLOR_INDEX> {

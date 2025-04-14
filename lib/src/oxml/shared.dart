@@ -23,7 +23,7 @@ class CT_DecimalNumber extends BaseOxmlElement {
 
   /// newElement Returns a new `CT_DecimalNumber`-equivalent element having the specified
   /// tag name [nsptagname] and `w:val` attribute set to [val].
-  static XmlElement create (String nsptagname, int val) {
+  static XmlElement create(String nsptagname, int val) {
     // Assume OxmlElement creates a basic XmlElement with the given tag and attributes
     return OxmlElement(nsptagname, attrs: {qn("w:val"): val.toString()});
   }
@@ -35,6 +35,8 @@ class CT_DecimalNumber extends BaseOxmlElement {
 class CT_OnOff extends BaseOxmlElement {
   /// Wraps the given [element].
   CT_OnOff(super.element);
+
+  static XmlElement create(String qnTagName) => OxmlElement(qnTagName);
 
   /// The boolean value of the `w:val` attribute. Defaults to `true` if the
   /// attribute is not present. Assigning `true` (the default) removes the

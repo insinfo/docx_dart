@@ -72,6 +72,49 @@ class BaseOxmlElement {
   /// Creates a wrapper around an existing [XmlElement].
   BaseOxmlElement(this.element);
 
+  /// Returns the local part of a qualified tag name string.
+  /// Example: qnName("{http://...}p") => "p"
+  ///          qnName("w:p")         => "p"
+  /// Needed by descriptors when throwing errors with user-friendly names.
+  String qnName(String qualifiedTagName) {
+    if (qualifiedTagName.contains(':')) {
+      return qualifiedTagName.split(':')[1];
+    } else if (qualifiedTagName.startsWith('{') &&
+        qualifiedTagName.contains('}')) {
+      return qualifiedTagName.substring(qualifiedTagName.indexOf('}') + 1);
+    }
+    return qualifiedTagName; // Assume it's already local if no prefix/URI
+  }
+
+  T? getParentAs<T extends BaseOxmlElement>(
+      T Function(XmlElement) constructor) {
+    final parentNode = element.parent;
+    if (parentNode is XmlElement) {
+      return constructor(parentNode);
+    }
+    return null;
+  }
+
+  /// Finds all direct child elements matching [targetQnTagName] and constructs
+  /// instances of type [T] using the provided [constructor].
+  ///
+  /// [targetQnTagName] should be the prefixed tag name like "w:r".
+  /// [constructor] should be a function that takes an [XmlElement] and returns
+  /// an instance of [T], e.g., `(el) => CT_R(el)`.
+  List<T> childrenWhereType<T extends BaseOxmlElement>(
+    String targetQnTagName,
+    T Function(XmlElement) constructor,
+  ) {
+    final qName = _QName.fromQualifiedName(targetQnTagName);
+    return element.children
+        .whereType<XmlElement>() // Filtra apenas elementos XML
+        .where((el) => // Filtra pelo nome local e namespace URI corretos
+            el.name.local == qName.localName &&
+            el.name.namespaceUri == qName.namespaceUri)
+        .map((el) => constructor(el)) // Constrói o objeto Dart wrapper
+        .toList();
+  }
+
   /// Returns the first child element matching one of the prefixed tag names
   /// in [tagnames] (e.g., ["w:p", "w:tbl"]).
   /// Returns `null` if no matching child is found.

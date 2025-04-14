@@ -3,6 +3,8 @@
 ///
 /// Custom element classes for DrawingML-related elements like `<w:drawing>`.
 
+import 'package:docx_dart/src/oxml/ns.dart';
+import 'package:docx_dart/src/oxml/parser.dart';
 import 'package:xml/xml.dart';
 
 import 'shape.dart'; // Might need CT_Inline, CT_Anchor later
@@ -12,6 +14,9 @@ import 'xmlchemy.dart'; // For BaseOxmlElement
 class CT_Drawing extends BaseOxmlElement {
   /// Wraps the [element] in a [CT_Drawing] instance.
   CT_Drawing(super.element);
+
+  static XmlElement create() => OxmlElement(qnTagName);
+  static final qnTagName = qn('w:drawing');
 
   // --- Getters for potential DrawingML content ---
   // These would need to be implemented based on the actual expected children
