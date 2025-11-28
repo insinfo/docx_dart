@@ -6,10 +6,11 @@ import 'package:docx_dart/src/oxml/shared.dart';
 import 'package:xml/xml.dart';
 
 import '../enum/table.dart' // Enums específicos de tabela
-    show
-        WD_CELL_VERTICAL_ALIGNMENT,
-        WD_ROW_HEIGHT_RULE,
-        WD_TABLE_ALIGNMENT;
+  show
+    WD_CELL_VERTICAL_ALIGNMENT,
+    WD_ROW_HEIGHT_RULE,
+    WD_TABLE_ALIGNMENT,
+    WD_TABLE_DIRECTION;
 
 import '../enum/text.dart';
 
@@ -347,9 +348,27 @@ class CT_Tc extends BaseOxmlElement {
 
   List<CT_P> get pList => _p.getElements(this);
   List<CT_Tbl> get tblList => _tbl.getElements(this);
+  List<BaseOxmlElement> get innerContentElements {
+    final content = <BaseOxmlElement>[];
+    for (final child in element.children.whereType<XmlElement>()) {
+      final nsUri = child.name.namespaceUri;
+      final localName = child.name.local;
+      if (nsUri != nsmap['w']) {
+        continue;
+      }
+      if (localName == 'p') {
+        content.add(CT_P(child));
+      } else if (localName == 'tbl') {
+        content.add(CT_Tbl(child));
+      }
+    }
+    return content;
+  }
 
   int get gridSpan => tcPr?.gridSpan ?? 1;
   set gridSpan(int value) => getOrAddTcPr().gridSpan = value;
+  int get grid_span => gridSpan;
+  set grid_span(int value) => gridSpan = value;
 
   String? get vMerge => tcPr?.vMergeVal;
   set vMerge(String? val) => getOrAddTcPr().vMergeVal = val;
@@ -357,11 +376,101 @@ class CT_Tc extends BaseOxmlElement {
   Length? get width => tcPr?.width;
   set width(Length? val) => getOrAddTcPr().width = val;
 
+  int get gridOffset {
+    final row = _tr;
+    var offset = row.gridBefore;
+    for (final cell in row.tcList) {
+      if (cell.element == element) {
+        return offset;
+      }
+      offset += cell.gridSpan;
+    }
+    return offset;
+  }
+
+  int get grid_offset => gridOffset;
+
+  List<BaseOxmlElement> get inner_content_elements => innerContentElements;
+
+  void clearContent() {
+    final removable = <XmlNode>[];
+    for (final child in element.children) {
+      if (child is XmlElement) {
+        final isTcPr =
+            child.name.local == 'tcPr' && child.name.namespaceUri == nsmap['w'];
+        if (isTcPr) {
+          continue;
+        }
+      }
+      removable.add(child);
+    }
+    for (final node in removable) {
+      element.children.remove(node);
+    }
+  }
+
+  void clear_content() => clearContent();
+
   CT_P addP() {
     final pElement = CT_P.create();
     element.children.add(pElement);
     return CT_P(pElement);
   }
+
+  CT_Row get _tr {
+    final parentRow = getParentAs<CT_Row>(CT_Row.new);
+    if (parentRow == null) {
+      throw StateError('CT_Tc has no parent row');
+    }
+    return parentRow;
+  }
+
+  CT_Tbl get _enclosingTbl {
+    final tbl = _tr.getParentAs<CT_Tbl>(CT_Tbl.new);
+    if (tbl == null) {
+      throw StateError('CT_Tc has no ancestor table');
+    }
+    return tbl;
+  }
+
+  int get _trIdx {
+    final rows = _enclosingTbl.trList;
+    final idx = rows.indexWhere((row) => row.element == _tr.element);
+    if (idx < 0) {
+      throw StateError('Row for CT_Tc not found in parent table');
+    }
+    return idx;
+  }
+
+  CT_Row get _trAbove {
+    final rows = _enclosingTbl.trList;
+    final idx = _trIdx;
+    if (idx == 0) {
+      throw StateError('Top-most row has no row above');
+    }
+    return rows[idx - 1];
+  }
+
+  CT_Row? get _trBelow {
+    final rows = _enclosingTbl.trList;
+    final idx = _trIdx;
+    if (idx >= rows.length - 1) {
+      return null;
+    }
+    return rows[idx + 1];
+  }
+
+  CT_Tc get _tcAbove => _trAbove.tcAtGridOffset(gridOffset);
+  // ignore: unused_element
+  CT_Tc? get _tcBelow {
+    final rowBelow = _trBelow;
+    if (rowBelow == null) {
+      return null;
+    }
+    return rowBelow.tcAtGridOffset(gridOffset);
+  }
+
+  CT_Tc get tcAbove => _tcAbove;
 
   CT_Tc merge(CT_Tc otherTc) {
     print('WARN: CT_Tc.merge() is not fully implemented.');
@@ -740,9 +849,28 @@ class CT_Tbl extends BaseOxmlElement {
 
   String? get tblStyleVal => tblPr.style;
   set tblStyleVal(String? styleId) => tblPr.style = styleId;
+  String? get tblStyle_val => tblStyleVal;
+  set tblStyle_val(String? styleId) => tblStyleVal = styleId;
 
-  bool? get bidiVisualVal => tblPr.bidiVisualVal;
-  set bidiVisualVal(bool? v) => tblPr.bidiVisualVal = v;
+  WD_TABLE_DIRECTION? get bidiVisualVal {
+    final bool? raw = tblPr.bidiVisualVal;
+    if (raw == null) {
+      return null;
+    }
+    return raw ? WD_TABLE_DIRECTION.RTL : WD_TABLE_DIRECTION.LTR;
+  }
+
+  set bidiVisualVal(WD_TABLE_DIRECTION? direction) {
+    if (direction == null) {
+      tblPr.bidiVisualVal = null;
+    } else {
+      tblPr.bidiVisualVal = direction == WD_TABLE_DIRECTION.RTL;
+    }
+  }
+
+  WD_TABLE_DIRECTION? get bidiVisual_val => bidiVisualVal;
+  set bidiVisual_val(WD_TABLE_DIRECTION? direction) =>
+      bidiVisualVal = direction;
 }
 
 /// `<w:tblW>` element, specifies table-related width.

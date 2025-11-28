@@ -175,30 +175,25 @@ class CT_Document extends BaseOxmlElement {
   /// in document order. Includes the final one in `<w:body>` and any
   /// preceding ones within `<w:p>/<w:pPr>`.
   List<CT_SectPr> get sectPrList {
-    // This XPath logic is complex to replicate without full XPath support.
-    // It needs to find <w:sectPr> directly under w:body OR under w:body/w:p/w:pPr.
-    // This is a simplified version assuming direct access or needing library enhancement.
     final sectPrs = <CT_SectPr>[];
-    final bodyElement = body.element; // Get the underlying XmlElement
+    final bodyElm = body;
 
-    // Find sectPr under paragraphs first
-    bodyElement.findElements(CT_P.qnTagName).forEach((p) {
-      final pPr = p.findElements(qn('w:pPr')).firstOrNull;
-      final sectPr = pPr?.findElements(CT_SectPr.qnTagName).firstOrNull;
-      if (sectPr != null) {
-        sectPrs.add(CT_SectPr(sectPr));
+    for (final paragraph in bodyElm.pList) {
+      final pSectPr = paragraph.pPr?.sectPr;
+      if (pSectPr != null) {
+        sectPrs.add(pSectPr);
       }
-    });
-
-    // Find the final sectPr directly under body
-    final finalSectPr =
-        bodyElement.findElements(CT_SectPr.qnTagName).firstOrNull;
-    if (finalSectPr != null) {
-      sectPrs.add(CT_SectPr(finalSectPr));
     }
 
-    // Note: This doesn't guarantee perfect document order if structure is unusual,
-    // and doesn't handle sectPr inside revision marks etc. like the Python XPath.
+    final trailingSectPr = bodyElm.sectPr;
+    if (trailingSectPr != null) {
+      sectPrs.add(trailingSectPr);
+    }
+
+    if (sectPrs.isEmpty) {
+      sectPrs.add(bodyElm.getOrAddSectPr());
+    }
+
     return sectPrs;
   }
 

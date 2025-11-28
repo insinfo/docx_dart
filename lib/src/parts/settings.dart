@@ -1,3 +1,32 @@
+import 'package:docx_dart/src/opc/constants.dart';
+import 'package:docx_dart/src/opc/oxml.dart' show parse_xml;
+import 'package:docx_dart/src/opc/packuri.dart';
+import 'package:docx_dart/src/opc/part.dart';
+import 'package:docx_dart/src/oxml/settings.dart';
+import 'package:docx_dart/src/package.dart';
+import 'package:docx_dart/src/settings.dart';
+
+class SettingsPart extends XmlPart {
+  SettingsPart(super.partname, super.contentType, super.element, super.package);
+
+  static SettingsPart defaultPart(Package package) {
+    final partname = PackUri("/word/settings.xml");
+    const contentType = CONTENT_TYPE.WML_SETTINGS;
+    final element = parse_xml(_defaultSettingsXml);
+    return SettingsPart(partname, contentType, element, package);
+  }
+
+  Settings get settings => Settings(_ctSettings);
+
+  CT_Settings get _ctSettings {
+    final base = element;
+    if (base is CT_Settings) {
+      return base;
+    }
+    return CT_Settings(base.element);
+  }
+
+  static const String _defaultSettingsXml = r'''
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <w:settings
     xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math"
@@ -24,3 +53,5 @@
   <w:clrSchemeMapping w:bg1="light1" w:t1="dark1" w:bg2="light2" w:t2="dark2" w:accent1="accent1" w:accent2="accent2" w:accent3="accent3" w:accent4="accent4" w:accent5="accent5" w:accent6="accent6" w:hyperlink="hyperlink" w:followedHyperlink="followedHyperlink"/>
   <w:doNotAutoCompressPictures/>
 </w:settings>
+''';
+}

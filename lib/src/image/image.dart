@@ -2,10 +2,8 @@
 import 'dart:typed_data';
 import 'dart:io';
 import 'package:path/path.dart' as p; // Para basename e splitext
-import 'package:crypto/crypto.dart'; // Para sha1
-import 'package:docx_dart/src/image/exceptions.dart';
+import 'package:crypto/crypto.dart' as crypto; // Para sha1
 import 'package:docx_dart/src/shared.dart'; // Para Length, Inches, Emu
-import 'package:collection/collection.dart'; // Para firstWhereOrNull se necessário
 
 abstract class BaseImageHeader {
  final int pxWidth;
@@ -28,7 +26,6 @@ class Image {
 
  /// Cria uma instância de [Image] a partir de um [Uint8List] (blob).
  static Image fromBlob(Uint8List blob) {
-    final stream = ByteData.view(blob.buffer); // Adaptar conforme necessidade da factory
     final header = _ImageHeaderFactory(blob); // Supõe que a factory use o blob
     final filename = 'image.${header.defaultExt}';
     return Image._internal(blob, filename, header);
@@ -96,7 +93,7 @@ class Image {
  }
 
  /// Digest de hash SHA1 do blob da imagem.
- String get sha1 => sha1.convert(_blob).toString();
+ String get sha1 => crypto.sha1.convert(_blob).toString();
 }
 
 // Factory simulada

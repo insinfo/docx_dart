@@ -1,15 +1,10 @@
 // docx/drawing/init.dart
-import 'package:docx_dart/src/oxml/drawing.dart'; // Para CT_Drawing
-import 'package:docx_dart/src/shared.dart'; // Para Parented, ProvidesStoryPart
-import 'package:xml/xml.dart'; // Para XmlElement
+import 'package:docx_dart/src/oxml/drawing.dart';
+import 'package:docx_dart/src/shared.dart';
+import 'package:docx_dart/src/types.dart';
 
 class Drawing extends Parented {
-  final XmlElement _drawing;
-  // _element é herdado/definido em Parented/ElementProxy se aplicável
-  // final ProvidesStoryPart _parent; // Herdado de Parented
+  final CT_Drawing drawing;
 
-  Drawing(this._drawing, ProvidesStoryPart parent) : super(parent) {
-     // Se ElementProxy for a base de Parented, inicialize _element aqui
-     // Exemplo: (this as ElementProxy)._element = _drawing;
-  }
+  Drawing(this.drawing, ProvidesStoryPart parent) : super(parent);
 }

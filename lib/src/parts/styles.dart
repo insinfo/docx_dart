@@ -1,38 +1,35 @@
 // docx/parts/styles.dart
 // Corresponds to Python file: python-docx/src/docx/parts/styles.py
 
-import 'package:xml/xml.dart';
-
-// Assuming necessary imports from translated files:
+import '../opc/oxml.dart' show parse_xml;
 import '../opc/part.dart';
 import '../opc/constants.dart' show CONTENT_TYPE;
 import '../opc/packuri.dart';
-import '../styles/style.dart'; // Assuming styles.dart contains the Styles class
-import '../package.dart'; // Assuming package.dart contains the Package class
+import '../package.dart';
+import '../styles/styles.dart';
+import '../types.dart';
 
 /// Proxy for the styles.xml part containing style definitions for a document or
 /// glossary.
-class StylesPart extends XmlPart {
-  Styles? _styles; // Cache for the Styles object
+class StylesPart extends XmlPart implements ProvidesXmlPart {
+  Styles? _styles;
 
   StylesPart(super.partname, super.contentType, super.element, super.package);
 
-  /// Returns a newly created styles part, containing a default set of elements.
-  ///
-  /// [package] is the Package object this part belongs to.
-  static StylesPart createDefault(Package package) {
-    final partname = PackURI('/word/styles.xml');
+  static StylesPart defaultPart(Package package) {
+    final partname = PackUri('/word/styles.xml');
     const contentType = CONTENT_TYPE.WML_STYLES;
-    final element = XmlDocument.parse(_defaultStylesXml).rootElement;
+    final element = parse_xml(_defaultStylesXml);
     return StylesPart(partname, contentType, element, package);
   }
 
-  /// The [Styles] instance providing access to the styles (<w:style> element proxies)
-  /// defined in this styles part.
   Styles get styles {
-    _styles ??= Styles(element);
+    _styles ??= Styles(element, this);
     return _styles!;
   }
+
+  @override
+  XmlPart get part => this;
 
   /// XML content for a default styles part.
   /// NOTE: In a production Flutter/Dart app, this would typically be loaded

@@ -1,158 +1,141 @@
-// docx/opc/part.dart
 import 'dart:typed_data';
-import 'package:docx_dart/src/opc/oxml.dart';
-import 'package:docx_dart/src/opc/packuri.dart';
-import 'package:docx_dart/src/opc/rel.dart';
-import 'package:docx_dart/src/oxml/parser.dart';
-import 'package:docx_dart/src/oxml/xmlchemy.dart';
-import 'package:docx_dart/src/opc/package.dart'; // Para OpcPackage
-import 'package:docx_dart/src/opc/constants.dart'; // Para RELATIONSHIP_TARGET_MODE
 
-typedef PartLoadFunction = Part Function(PackUri partname, String contentType, Uint8List blob, OpcPackage package);
-typedef PartSelectorFunction = Type? Function(String contentType, String reltype); // Ou retorna PartLoadFunction?
+import 'package:xml/xml.dart';
+
+import 'package:docx_dart/src/opc/oxml.dart' show parse_xml, serializePartXml;
+import 'package:docx_dart/src/opc/packuri.dart';
+import 'package:docx_dart/src/opc/package.dart';
+import 'package:docx_dart/src/opc/rel.dart';
+import 'package:docx_dart/src/oxml/ns.dart' show nsmap;
+import 'package:docx_dart/src/oxml/xmlchemy.dart';
+
+typedef PartLoadFunction = Part Function(
+  PackUri partname,
+  String contentType,
+  Uint8List blob,
+  OpcPackage package,
+);
+
+typedef PartSelectorFunction = PartLoadFunction? Function(
+  String contentType,
+  String reltype,
+);
 
 class Part {
- PackUri _partname;
- final String _contentType;
- Uint8List? _blob; // Pode ser nulo se for XmlPart e ainda não serializado
- final OpcPackage? _package; // Pode ser nulo durante a construção inicial? Ajustar se necessário.
- late final Relationships _rels; // Usar late final
+  PackUri _partname;
+  final String _contentType;
+  Uint8List? _blob;
+  final OpcPackage? _package;
+  Relationships? _rels;
 
- Part(this._partname, this._contentType, [this._blob, this._package]) {
-    _rels = Relationships(_partname.baseUri);
- }
+  Part(this._partname, this._contentType, [this._blob, this._package]);
 
- /// Chamado após unmarshalling para processamento adicional (ex: parse XML).
- void afterUnmarshal() {}
+  void afterUnmarshal() {}
 
- /// Chamado antes da serialização para processamento (ex: finalizar nomes).
- void beforeMarshal() {}
+  void beforeMarshal() {}
 
- /// Conteúdo desta parte como bytes. Pode ser texto ou binário.
- Uint8List get blob => _blob ?? Uint8List(0); // Deve ser implementado por subclasses como XmlPart
+  Uint8List get blob => _blob ?? Uint8List(0);
 
- /// Tipo de conteúdo desta parte.
- String get contentType => _contentType;
+  String get contentType => _contentType;
 
- /// Remove o relacionamento identificado por `rId` se sua contagem de referências for menor que 2.
- void dropRel(String rId) {
-   if (_relRefCount(rId) < 2) {
-      _rels.remove(rId);
-   }
- }
-
- /// Carrega uma parte do pacote. Usado por PartFactory.
- static Part load(PackUri partname, String contentType, Uint8List blob, OpcPackage package) {
-    return Part(partname, contentType, blob, package);
- }
-
- /// Adiciona um novo relacionamento carregado do pacote.
- Relationship loadRel(String reltype, Object target, String rId, {bool isExternal = false}) {
-    return rels.addRelationship(reltype, target, rId, isExternal: isExternal);
- }
-
- /// Instância [OpcPackage] à qual esta parte pertence.
- OpcPackage? get package => _package;
-
- /// Instância [PackUri] contendo o nome desta parte.
- PackUri get partname => _partname;
- set partname(PackUri value) {
-    _partname = value;
-    // Atualizar base URI dos relacionamentos se necessário?
-    _rels = Relationships(_partname.baseUri); // Recriar com nova base URI
- }
-
- /// Retorna a parte relacionada por `reltype`. Lança exceção se não encontrada ou múltipla.
- Part partRelatedBy(String reltype) {
-    return rels.partWithReltype(reltype);
- }
-
- /// Adiciona ou obtém relacionamento com `target`. Retorna rId.
- String relateTo(Part target, String reltype, {bool isExternal = false}) {
-    if (isExternal) {
-       return rels.getOrAddExternalRel(reltype, target.partname.uri); // Assumindo que target é string URL se external
-    } else {
-       return rels.getOrAdd(reltype, target).rId;
+  void dropRel(String rId) {
+    if (_relRefCount(rId) < 2) {
+      rels.remove(rId);
     }
- }
+  }
 
- /// Mapa de rId para partes relacionadas (alvos internos).
- Map<String, Part> get relatedParts => rels.relatedParts;
+  static Part load(PackUri partname, String contentType, Uint8List blob, OpcPackage package) {
+    return Part(partname, contentType, blob, package);
+  }
 
- /// Coleção de relacionamentos para esta parte.
- Relationships get rels => _rels;
+  Relationship loadRel(String reltype, Object target, String rId, {bool isExternal = false}) {
+    return rels.addRelationship(reltype, target, rId, isExternal: isExternal);
+  }
 
- /// Retorna a referência de destino (URL ou path relativo) para `rId`.
- String targetRef(String rId) => rels[rId]!.targetRef;
+  OpcPackage? get package => _package;
 
- /// Contagem de referências a `rId` dentro desta parte (0 para não-XmlPart).
- int _relRefCount(String rId) => 0;
+  PackUri get partname => _partname;
+
+  set partname(PackUri value) => _partname = value;
+
+  Part partRelatedBy(String reltype) => rels.partWithReltype(reltype);
+
+  String relateTo(Object target, String reltype, {bool isExternal = false}) {
+    if (isExternal) {
+      if (target is! String) {
+        throw ArgumentError('External relationships require a String target reference.');
+      }
+      return rels.getOrAddExternalRel(reltype, target);
+    }
+    if (target is! Part) {
+      throw ArgumentError('Internal relationships require a Part target.');
+    }
+    return rels.getOrAdd(reltype, target).rId;
+  }
+
+  Map<String, Part> get relatedParts => rels.relatedParts;
+
+  Relationships get rels => _rels ??= Relationships(_partname.baseUri);
+
+  String targetRef(String rId) => rels[rId]!.targetRef;
+
+  int _relRefCount(String rId) => 0;
+
+  Part get part => this;
 }
-
 
 class PartFactory {
- static PartSelectorFunction? partClassSelector;
- static Map<String, PartLoadFunction> partTypeFor = {};
- static PartLoadFunction defaultPartType = Part.load;
+  static PartSelectorFunction? partClassSelector;
+  static final Map<String, PartLoadFunction> partTypeFor = {};
+  static PartLoadFunction defaultPartType = Part.load;
 
- static Part newPart(PackUri partname, String contentType, String reltype, Uint8List blob, OpcPackage package) {
+  static Part newPart(
+    PackUri partname,
+    String contentType,
+    String reltype,
+    Uint8List blob,
+    OpcPackage package,
+  ) {
     PartLoadFunction? loader;
-
     if (partClassSelector != null) {
-       final selectedType = partClassSelector!(contentType, reltype);
-       // Lógica para mapear Type para PartLoadFunction se necessário,
-       // ou fazer partClassSelector retornar PartLoadFunction diretamente.
-       // Por simplicidade, vamos assumir que a lógica de mapeamento está implícita.
-       if (selectedType != null) {
-          // loader = findLoaderForType(selectedType); // Lógica hipotética
-          print("Warning: PartSelectorFunction logic needs refinement in Dart");
-       }
+      loader = partClassSelector!(contentType, reltype);
     }
-
-    if (loader == null && partTypeFor.containsKey(contentType)) {
-      loader = partTypeFor[contentType];
-    }
-
+    loader ??= partTypeFor[contentType];
     loader ??= defaultPartType;
-
     return loader(partname, contentType, blob, package);
- }
+  }
 }
-
 
 class XmlPart extends Part {
- BaseOxmlElement _element; // O elemento raiz XML
+  final BaseOxmlElement _element;
 
- XmlPart(PackUri partname, String contentType, this._element, OpcPackage package)
-    : super(partname, contentType, null, package); // Blob inicial é nulo
+  XmlPart(PackUri partname, String contentType, this._element, OpcPackage package)
+      : super(partname, contentType, null, package);
 
- @override
- Uint8List get blob => serializePartXml(_element); // Serializa o elemento XML
+  @override
+  Uint8List get blob => serializePartXml(_element);
 
- BaseOxmlElement get element => _element;
+  BaseOxmlElement get element => _element;
 
- /// Carrega uma XmlPart a partir de um blob XML.
- static XmlPart load(PackUri partname, String contentType, Uint8List blob, OpcPackage package) {
-   final element = parse_xml(blob); // Usa o parser OX comunitàrio
-   // TODO: Precisa de um mecanismo para determinar a classe XmlPart específica (ex: DocumentPart)
-   // Isso pode ser feito em PartFactory ou aqui com base no contentType.
-   // Por agora, retornamos a classe base.
-   return XmlPart(partname, contentType, element, package);
- }
+  static XmlPart load(PackUri partname, String contentType, Uint8List blob, OpcPackage package) {
+    final element = parse_xml(blob);
+    return XmlPart(partname, contentType, element, package);
+  }
 
- @override
- XmlPart get part => this; // Terminus para delegação de part
-
- @override
- int _relRefCount(String rId) {
-   // Implementação usando xpath no _element
-   final rIds = _element.xpath("//@r:id").map((attr) => attr.value).toList();
-   return rIds.where((_rId) => _rId == rId).length;
- }
-}
-
-// Funções utilitárias simuladas para serialização/parsing
-Uint8List serializePartXml(BaseOxmlElement element) {
-  // Implementação usando package:xml para serializar
-  throw UnimplementedError();
+  @override
+  int _relRefCount(String rId) {
+    final namespace = nsmap['r'];
+    if (namespace == null) {
+      return 0;
+    }
+    int count = 0;
+    final Iterable<XmlElement> descendants = _element.element.descendants.whereType<XmlElement>();
+    for (final descendant in descendants) {
+      final attr = descendant.getAttribute('id', namespace: namespace);
+      if (attr != null && attr == rId) {
+        count += 1;
+      }
+    }
+    return count;
+  }
 }

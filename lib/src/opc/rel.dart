@@ -1,9 +1,7 @@
 // docx/opc/rel.dart
 import 'dart:collection'; // Para HashMap
-import 'package:docx_dart/src/opc/constants.dart';
 import 'package:docx_dart/src/opc/oxml.dart'; // Para CT_Relationships
 import 'package:docx_dart/src/opc/part.dart';
-import 'package:docx_dart/src/opc/packuri.dart';
 
 class Relationship {
  final String _rId;
@@ -94,8 +92,11 @@ class Relationships extends MapBase<String, Relationship> {
    }
 
    String get xml {
-     // Implementação usando CT_Relationships de oxml.dart
-     throw UnimplementedError();
+     final relsElm = CT_Relationships.newRelationships();
+     for (final rel in values) {
+        relsElm.add_rel(rel.rId, rel.reltype, rel.targetRef, isExternal: rel.isExternal);
+     }
+     return relsElm.xml;
    }
 
   Relationship? _getMatching(String reltype, Object target, {bool isExternal = false}) {

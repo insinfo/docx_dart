@@ -17,12 +17,13 @@ abstract class PhysPkgReader {
       } else {
         throw PackageNotFoundError("Package not found at '$pkgFile'");
       }
-    } else if (pkgFile is List<int>) { // Assume Uint8List ou List<int>
-       return _ZipPkgReader.fromBytes(pkgFile as Uint8List);
+    } else if (pkgFile is Uint8List) {
+      return _ZipPkgReader.fromBytes(pkgFile);
+    } else if (pkgFile is List<int>) {
+      return _ZipPkgReader.fromBytes(Uint8List.fromList(pkgFile));
     } else if (pkgFile is Archive) {
-       return _ZipPkgReader.fromArchive(pkgFile); // Construtor adicional útil
-    }
-     else {
+      return _ZipPkgReader.fromArchive(pkgFile); // Construtor adicional útil
+    } else {
       throw ArgumentError("Unsupported pkgFile type: ${pkgFile.runtimeType}");
     }
   }
@@ -50,22 +51,18 @@ abstract class PhysPkgWriter {
 // Implementação Zip usando package:archive
 class _ZipPkgReader implements PhysPkgReader {
   final Archive _archive;
-  final bool _shouldCloseFile;
   RandomAccessFile? _fileHandle; // Para fechar se abrimos o arquivo
 
   _ZipPkgReader(String path) :
      _archive = ZipDecoder().decodeBytes(File(path).readAsBytesSync()),
-     _shouldCloseFile = false, // Arquivo lido de uma vez
      _fileHandle = null;
 
 
    _ZipPkgReader.fromBytes(Uint8List bytes) :
      _archive = ZipDecoder().decodeBytes(bytes),
-     _shouldCloseFile = false,
      _fileHandle = null;
 
    _ZipPkgReader.fromArchive(this._archive) :
-      _shouldCloseFile = false,
       _fileHandle = null;
 
 
@@ -76,12 +73,8 @@ class _ZipPkgReader implements PhysPkgReader {
       throw PackageNotFoundError("Part not found: ${packUri.membername}");
     }
      // file.content pode ser dynamic (Uint8List ou List<int>), converter se necessário
-    if (file.content is Uint8List) {
-      return file.content as Uint8List;
-    } else if (file.content is List<int>) {
-       return Uint8List.fromList(file.content as List<int>);
-    }
-    throw StateError("Unexpected content type in archive file: ${file.content.runtimeType}");
+    final List<int> content = file.content as List<int>;
+    return Uint8List.fromList(List<int>.from(content));
   }
 
   @override
@@ -89,10 +82,8 @@ class _ZipPkgReader implements PhysPkgReader {
     final file = _archive.findFile(sourceUri.relsUri.membername);
     if (file == null) return null;
      // Assumindo que rels são UTF8
-     if (file.content is List<int>) {
-        return String.fromCharCodes(file.content as List<int>);
-     }
-     return null; // Ou lançar erro se o conteúdo não for bytes
+          final List<int> content = file.content as List<int>;
+          return String.fromCharCodes(content);
   }
 
   @override
@@ -114,17 +105,12 @@ class _ZipPkgWriter implements PhysPkgWriter {
   @override
   void write(PackUri packUri, Uint8List blob) {
      final archiveFile = ArchiveFile(packUri.membername, blob.length, blob);
-     // Definir compressão (opcional, padrão é Store)
-     archiveFile.compress = true; // Usar compressão Deflate
      _archive.addFile(archiveFile);
   }
 
   @override
   void close() {
-     final encodedBytes = ZipEncoder().encode(_archive);
-     if (encodedBytes == null) {
-        throw StateError("Failed to encode zip archive");
-     }
-     File(_path).writeAsBytesSync(encodedBytes);
+      final encodedBytes = ZipEncoder().encode(_archive);
+      File(_path).writeAsBytesSync(encodedBytes);
   }
 }

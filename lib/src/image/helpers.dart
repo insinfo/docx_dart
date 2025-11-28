@@ -1,6 +1,5 @@
 // docx/image/helpers.dart
 import 'dart:typed_data';
-import 'package:docx_dart/src/image/exceptions.dart';
 
 // Constantes para Endian podem ser usadas diretamente de dart:typed_data
 // final Endian BIG_ENDIAN = Endian.big;

@@ -10,6 +10,7 @@ import 'package:docx_dart/src/shared.dart';
 import 'package:docx_dart/src/text/paragraph.dart';
 import 'package:docx_dart/src/styles/style.dart';
 import 'package:docx_dart/src/table.dart';
+import 'package:docx_dart/src/types.dart';
 
 // Assuming these CT_* classes are defined in their respective oxml files
 // and have the necessary methods like add_p(), _insert_tbl(), p_lst, tbl_lst,
@@ -34,31 +35,56 @@ typedef BlockItemElement = dynamic; // CT_Body | CT_HdrFtr | CT_Tc
 
 /// Base class for proxy objects that can contain block items like paragraphs and tables.
 class BlockItemContainer extends StoryChild {
-  /// The underlying OOXML element (e.g., CT_Body, CT_Tc, CT_HdrFtr).
-  final BlockItemElement _element;
+  /// Lazily provides the underlying OOXML element (CT_Body, CT_Tc, CT_HdrFtr).
+  late BlockItemElement Function() _elementProvider;
 
   /// Creates a container associated with [_element] and belonging to [parent].
   /// [parent] must provide access back to the story part (e.g., DocumentPart).
-  BlockItemContainer(this._element, ProvidesStoryPart parent) : super(parent);
+  BlockItemContainer(BlockItemElement element, ProvidesStoryPart parent)
+      : super(parent) {
+    _elementProvider = (() => element);
+  }
+
+  /// Creates a container whose backing element is resolved on demand.
+  BlockItemContainer.lazy(
+    BlockItemElement Function() elementProvider,
+    ProvidesStoryPart parent,
+  )   : super(parent) {
+    _elementProvider = elementProvider;
+  }
+
+  /// Allows subclasses to update how the backing element is resolved.
+  void setElementProvider(BlockItemElement Function() elementProvider) {
+    _elementProvider = elementProvider;
+  }
+
+  BlockItemElement get _element => _elementProvider();
 
   /// Return paragraph newly added to the end of the content in this container.
-  /// [text] is added in a single run. [style] is applied if provided.
-  Paragraph addParagraph({String text = "", ParagraphStyle? style}) {
+  /// [text] is added in a single run. [style] may be a style name or
+  /// a [ParagraphStyle] instance.
+  Paragraph addParagraph({String text = "", dynamic style}) {
     final paragraph = _addParagraph(); // Gets API-level Paragraph wrapper
-    // --- CORRECTION: Ensure Paragraph has these methods ---
     if (text.isNotEmpty) {
-      paragraph.addRun(text: text); // Call method on the API Paragraph object
+      paragraph.addRun(text);
     }
     if (style != null) {
-      paragraph.style = style; // Call setter on the API Paragraph object
+      paragraph.style = style; // Paragraph handles resolving style ids
     }
-    // --- End Correction ---
     return paragraph;
   }
 
   /// Return a new [Table] object appended to the container.
-  Table addTable(int rows, int cols, Length width) {
-    final ctTbl = CT_Tbl.newTbl(rows, cols, width);
+  ///
+  /// [width] must be provided for body-like containers because it controls the
+  /// initial column widths. Cell containers override this method to provide a
+  /// sensible default when no width is supplied.
+  Table addTable(int rows, int cols, [Length? width]) {
+    final tableWidth = width;
+    if (tableWidth == null) {
+      throw ArgumentError('width must be supplied when adding a table here');
+    }
+    final ctTbl = CT_Tbl.newTbl(rows, cols, tableWidth);
 
     // --- CORRECTION: Use UnsupportedError for type mismatch ---
     if (_element is CT_Body || _element is CT_Tc || _element is CT_HdrFtr) {

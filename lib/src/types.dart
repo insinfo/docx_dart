@@ -6,6 +6,7 @@ abstract class ProvidesXmlPart {
   XmlPart get part;
 }
 
-abstract class ProvidesStoryPart {
+abstract class ProvidesStoryPart implements ProvidesXmlPart {
+  @override
   StoryPart get part;
 }

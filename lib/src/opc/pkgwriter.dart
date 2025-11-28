@@ -8,7 +8,6 @@ import 'package:docx_dart/src/opc/rel.dart';
 import 'package:docx_dart/src/opc/part.dart';
 import 'package:docx_dart/src/opc/spec.dart'; // Para default_content_types
 import 'package:docx_dart/src/opc/shared.dart'; // Para CaseInsensitiveMap
-import 'package:docx_dart/src/oxml/xmlchemy.dart'; // Para serializePartXml
 
 class PackageWriter {
 
@@ -50,9 +49,8 @@ class ContentTypesItem {
  ContentTypesItem._();
 
  Uint8List get blob {
-    final typesElm = _element;
-    // Serializar typesElm para Uint8List usando package:xml
-    return serializePartXml(typesElm);
+   final typesElm = _element;
+   return opc_oxml.serializePartXml(typesElm);
  }
 
  factory ContentTypesItem.fromParts(Iterable<Part> parts) {

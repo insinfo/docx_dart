@@ -1,7 +1,5 @@
 // docx/opc/pkgreader.py
 import 'dart:typed_data';
-import 'package:xml/xml.dart';
-import 'package:collection/collection.dart'; // Para firstWhereOrNull
 import 'package:docx_dart/src/opc/constants.dart';
 import 'package:docx_dart/src/opc/oxml.dart' as opc_oxml; // Para parse_xml e classes CT_*
 import 'package:docx_dart/src/opc/packuri.dart';
@@ -61,6 +59,7 @@ class SerializedRelationships extends Iterable<SerializedRelationship> {
 
 
 class ContentTypeMap {
+ ContentTypeMap();
  final Map<String, String> _overrides = CaseInsensitiveMap<String>();
  final Map<String, String> _defaults = CaseInsensitiveMap<String>();
 
@@ -110,11 +109,10 @@ class SerializedPart {
 
 
 class PackageReader {
- final ContentTypeMap _contentTypes;
  final SerializedRelationships _pkgSrels;
  final List<SerializedPart> _sparts;
 
- PackageReader._(this._contentTypes, this._pkgSrels, this._sparts);
+ PackageReader._(this._pkgSrels, this._sparts);
 
  static PackageReader fromFile(dynamic pkgFile) {
     final physReader = PhysPkgReader(pkgFile);
@@ -122,7 +120,7 @@ class PackageReader {
       final contentTypes = ContentTypeMap.fromXml(physReader.contentTypesXml);
       final pkgSrels = _srelsFor(physReader, PACKAGE_URI);
       final sparts = _loadSerializedParts(physReader, pkgSrels, contentTypes);
-      return PackageReader._(contentTypes, pkgSrels, sparts);
+      return PackageReader._(pkgSrels, sparts);
     } finally {
       physReader.close();
     }

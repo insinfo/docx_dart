@@ -1,6 +1,4 @@
 // docx/opc/parts/coreprops.py
-import 'dart:typed_data';
-import 'dart:io'; // Para IO
 import 'package:docx_dart/src/opc/constants.dart';
 import 'package:docx_dart/src/opc/coreprops.dart';
 import 'package:docx_dart/src/opc/package.dart';
@@ -30,7 +28,7 @@ class CorePropertiesPart extends XmlPart {
     return part;
  }
 
- CoreProperties get coreProperties => CoreProperties(_element as CT_CoreProperties);
+ CoreProperties get coreProperties => CoreProperties(element as CT_CoreProperties);
 
  // Método load herdado de XmlPart
 }

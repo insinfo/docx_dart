@@ -34,9 +34,7 @@ class PackUri {
     if (!baseUri.startsWith('/')) {
       throw ArgumentError("baseUri must begin with slash, got '$baseUri'");
     }
-    // Ensure baseUri ends with '/' if it's a directory-like structure
-    // p.url.join handles this reasonably well, but explicit check can be safer
-    final String normalizedBase = baseUri == '/' ? '/' : p.url.dirname(baseUri);
+    final String normalizedBase = baseUri;
     final String joinedUri = p.url.join(normalizedBase, relativeRef);
     // Normalize resolves '..' and ensures it starts with '/'
     final String absoluteUri = p.url.normalize(joinedUri);
@@ -66,7 +64,7 @@ class PackUri {
   ///
   /// Example: `'slide1.xml'` for `'/ppt/slides/slide1.xml'`.
   /// Returns `''` for the root URI `'/'`.
-  String get filename => p.url.basename(uri);
+  String get filename => uri == '/' ? '' : p.url.basename(uri);
 
 
   /// The numeric index parsed from the filename, or `null`.
@@ -112,12 +110,12 @@ class PackUri {
   PackUri get relsUri {
      final name = filename;
      // Handle root case explicitly
-     final relsFilename = name.isEmpty ? '.rels' : '$name.rels';
-     final base = baseUri;
-     // Use p.url.join which handles '/' correctly
-     final relsUriString = p.url.join(base, '_rels', relsFilename);
-     // Normalize to ensure clean path starting with '/'
-     return PackUri(p.url.normalize(relsUriString));
+      final relsFilename = name.isEmpty ? '.rels' : '$name.rels';
+      final base = baseUri;
+      // Use p.url.join which handles '/' correctly
+      final relsUriString = p.url.join(base, '_rels', relsFilename);
+      // Normalize to ensure clean path starting with '/'
+      return PackUri(p.url.normalize(relsUriString));
   }
 
 

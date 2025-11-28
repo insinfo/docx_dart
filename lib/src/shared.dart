@@ -54,10 +54,9 @@ class Length implements Comparable<Length> {
   @override
   int compareTo(Length other) => emu.compareTo(other.emu);
 
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Length && runtimeType == other.runtimeType && emu == other.emu;
+    @override
+    bool operator ==(Object other) =>
+      identical(this, other) || (other is Length && emu == other.emu);
 
   bool operator <(Length other) => emu < other.emu;
   bool operator <=(Length other) => emu <= other.emu;
@@ -204,7 +203,7 @@ class RGBColor {
 
 /// Base class for proxy objects wrapping an underlying Open XML element.
 /// Provides access to the element and its containing part.
-class ElementProxy {
+class ElementProxy implements ProvidesXmlPart {
   @internal
   final BaseOxmlElement element; // Renamed _element to element for clarity
   final ProvidesXmlPart? _parent; // Can be null if proxy wraps root/unparented
@@ -214,6 +213,7 @@ class ElementProxy {
 
   /// The package part containing this object's element.
   /// Throws [StateError] if the parent context is not available.
+  @override
   XmlPart get part {
     final parent = _parent; // Use local variable for null safety check
     if (parent == null) {
@@ -236,25 +236,27 @@ class ElementProxy {
 
 /// Base class for objects that have a parent providing access to the part.
 /// Used for elements below the part level that might need part services.
-class Parented {
+class Parented implements ProvidesXmlPart {
   @internal
   final ProvidesXmlPart parent; // Renamed _parent
 
   Parented(this.parent);
 
   /// The package part containing this object.
+  @override
   XmlPart get part => parent.part;
 }
 
 /// Base class for document elements residing within a story part (like DocumentPart, HeaderPart).
 /// Provides access to the containing [StoryPart].
-class StoryChild {
+class StoryChild implements ProvidesStoryPart {
   @internal
   final ProvidesStoryPart parent; // Renamed _parent
 
   StoryChild(this.parent);
 
   /// The story part (e.g., DocumentPart, HeaderPart) containing this object.
+  @override
   StoryPart get part => parent.part;
 }
 

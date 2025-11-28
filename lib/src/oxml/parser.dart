@@ -86,9 +86,11 @@ XmlElement parseXml(dynamic xmlInput) {
 XmlElement OxmlElement(String nsptagStr,
     {Map<String, String>? attrs, Map<String, String>? nsdecls}) {
   // 1. Validate and parse the main tag string
-  final tag;
+  final NamespacePrefixedTag tag;
   try {
-    tag = NamespacePrefixedTag(nsptagStr);
+    tag = nsptagStr.startsWith('{')
+        ? NamespacePrefixedTag.fromClarkName(nsptagStr)
+        : NamespacePrefixedTag(nsptagStr);
   } on ArgumentError catch (e) {
     throw ArgumentError(
         "Invalid nsptagStr '$nsptagStr' for OxmlElement: ${e.message}");
@@ -102,7 +104,13 @@ XmlElement OxmlElement(String nsptagStr,
       String attrPrefix;
       String attrLocalName;
       String? attrUri;
-      if (attrParts.length == 2) {
+      if (attrName.startsWith('{') && attrName.contains('}')) {
+        final tag =
+            NamespacePrefixedTag.fromClarkName(attrName);
+        attrPrefix = tag.nspfx;
+        attrLocalName = tag.localPart;
+        attrUri = tag.nsuri;
+      } else if (attrParts.length == 2) {
         // Prefixed attribute (e.g., "r:id", "xml:space")
         attrPrefix = attrParts[0];
         attrLocalName = attrParts[1];
@@ -158,7 +166,9 @@ XmlElement OxmlElement(String nsptagStr,
         'Internal error: XmlBuilder did not create an element for $nsptagStr');
   }
 
-  return node.children.first as XmlElement;
+  final element = node.children.first as XmlElement;
+  element.parent?.children.remove(element);
+  return element;
 }
 
 

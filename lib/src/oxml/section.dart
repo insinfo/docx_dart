@@ -390,20 +390,152 @@ class CT_SectPr extends BaseOxmlElement {
   }
 
   CT_SectPr? get precedingSectPr {
-    print('Warn: CT_SectPr.precedingSectPr is not fully implemented.');
-    return null;
+    final partition = _sectionPartition;
+    if (partition == null) {
+      return null;
+    }
+    final extents = partition.extents;
+    final idx = extents.indexWhere(
+        (extent) => identical(extent.sectPr.element, element));
+    if (idx <= 0) {
+      return null;
+    }
+    return extents[idx - 1].sectPr;
   }
 
   CT_SectPr? get preceding_sectPr => precedingSectPr;
 
   Iterable<BaseOxmlElement /* CT_P | CT_Tbl */ > iterInnerContent() sync* {
-    print(
-        'Warn: CT_SectPr.iterInnerContent is not fully implemented and will yield no results.');
-    yield* [];
+    final partition = _sectionPartition;
+    if (partition == null) {
+      return;
+    }
+    final extent = partition.extents.firstWhereOrNull(
+        (entry) => identical(entry.sectPr.element, element));
+    if (extent == null) {
+      return;
+    }
+    final blocks = partition.blocks;
+    final clampedEnd = extent.endIndex.clamp(0, blocks.length);
+    final start = extent.startIndex.clamp(0, blocks.length);
+    for (var idx = start; idx < clampedEnd; idx++) {
+      yield blocks[idx];
+    }
   }
 
   Iterable<BaseOxmlElement /* CT_P | CT_Tbl */ > iter_inner_content() =>
       iterInnerContent();
+
+  _SectionPartition? get _sectionPartition {
+    final bodyElement = _bodyElement;
+    if (bodyElement == null) {
+      return null;
+    }
+    return _buildSectionPartition(bodyElement);
+  }
+
+  XmlElement? get _bodyElement {
+    final docElement = _documentElement;
+    if (docElement == null) {
+      return null;
+    }
+    final bodyClark = qn('w:body');
+    return docElement.children
+      .whereType<XmlElement>()
+      .firstWhereOrNull((child) => _matchesClark(child, bodyClark));
+  }
+
+  XmlElement? get _documentElement {
+    XmlElement? current = element;
+    while (current?.parent is XmlElement) {
+      current = current!.parent as XmlElement;
+    }
+    final root = current!;
+    return _matchesClark(root, qn('w:document')) ? root : null;
+  }
+
+  _SectionPartition? _buildSectionPartition(XmlElement bodyElement) {
+    final blocks = <BaseOxmlElement>[];
+    final boundaries = <_SectionBoundary>[];
+
+    for (final child in bodyElement.children.whereType<XmlElement>()) {
+      if (_matchesClark(child, CT_P.qnTagName)) {
+        final blockIndex = blocks.length;
+        blocks.add(CT_P(child));
+        final pPr = child
+            .children
+            .whereType<XmlElement>()
+            .firstWhereOrNull((elm) => _matchesClark(elm, qn('w:pPr')));
+        final sectPrElm = pPr
+            ?.children
+            .whereType<XmlElement>()
+            .firstWhereOrNull(
+                (elm) => _matchesClark(elm, CT_SectPr.qnTagName));
+        if (sectPrElm != null) {
+          boundaries.add(_SectionBoundary(
+              CT_SectPr(sectPrElm), blockIndex,
+              includesTerminatingParagraph: true));
+        }
+      } else if (_matchesClark(child, CT_Tbl.qnTagName)) {
+        blocks.add(CT_Tbl(child));
+      } else if (_matchesClark(child, CT_SectPr.qnTagName)) {
+        boundaries.add(_SectionBoundary(CT_SectPr(child), blocks.length,
+            includesTerminatingParagraph: false));
+      }
+    }
+
+    if (boundaries.isEmpty) {
+      return _SectionPartition(blocks, const []);
+    }
+
+    final extents = <_SectionExtent>[];
+    var startIndex = 0;
+    for (final boundary in boundaries) {
+      final endIndex = boundary.includesTerminatingParagraph
+          ? (boundary.blockIndex + 1)
+          : boundary.blockIndex;
+      final clampedEnd = endIndex.clamp(0, blocks.length);
+      final clampedStart = startIndex.clamp(0, blocks.length);
+      extents.add(_SectionExtent(boundary.sectPr, clampedStart, clampedEnd));
+      startIndex = clampedEnd;
+    }
+
+    return _SectionPartition(blocks, extents);
+  }
+}
+
+class _SectionBoundary {
+  _SectionBoundary(this.sectPr, this.blockIndex,
+      {required this.includesTerminatingParagraph});
+
+  final CT_SectPr sectPr;
+  final int blockIndex;
+  final bool includesTerminatingParagraph;
+}
+
+class _SectionExtent {
+  _SectionExtent(this.sectPr, this.startIndex, this.endIndex);
+
+  final CT_SectPr sectPr;
+  final int startIndex;
+  final int endIndex;
+}
+
+class _SectionPartition {
+  _SectionPartition(this.blocks, this.extents);
+
+  final List<BaseOxmlElement> blocks;
+  final List<_SectionExtent> extents;
+}
+
+bool _matchesClark(XmlElement element, String clarkName) {
+  if (!clarkName.startsWith('{') || !clarkName.contains('}')) {
+    return element.name.qualified == clarkName;
+  }
+  final close = clarkName.indexOf('}');
+  final uri = clarkName.substring(1, close);
+  final local = clarkName.substring(close + 1);
+  return element.name.namespaceUri == uri && element.name.local == local;
 }
 
 // Placeholder classes for required converters (Assume defined in simpletypes.dart)

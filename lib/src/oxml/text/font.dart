@@ -228,6 +228,8 @@ class CT_RPr extends BaseOxmlElement {
       CT_HpsMeasure(getOrAddChild(_wSz, _szSuccessors, _factorySz));
   CT_VerticalAlignRun getOrAddVertAlign() => CT_VerticalAlignRun(
       getOrAddChild(_wVertAlign, _vertAlignSuccessors, _factoryVertAlign));
+    CT_Color getOrAddColor() =>
+      CT_Color(getOrAddChild(_wColor, _colorSuccessors, factoryColor));
   // CT_String getOrAddRStyle() => CT_String(
   //    getOrAddChild(_wRStyle, _rStyleSuccessors, _factoryRStyle)); // Renamed from addRStyle for consistency
   CT_Underline getOrAddU() => CT_Underline(getOrAddChild(
@@ -240,6 +242,7 @@ class CT_RPr extends BaseOxmlElement {
   void removeSz() => removeChild(_wSz);
   void removeU() => removeChild(_wU);
   void removeVertAlign() => removeChild(_wVertAlign);
+  void removeColor() => removeChild(_wColor);
 
   // --- Private Element Factories ---
   static XmlElement _factoryRStyle() =>

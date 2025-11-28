@@ -557,11 +557,6 @@ class CT_Picture extends BaseOxmlElement {
     spPr.getOrAddPrstGeom();
     return pic;
   }
-
-  static String _picXmlTemplate() {
-    // No longer needed if create() builds the structure
-    return '';
-  }
 }
 
 // --- Placeholder Converters ---

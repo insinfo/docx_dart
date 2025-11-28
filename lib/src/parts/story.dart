@@ -1,12 +1,9 @@
 // docx/parts/story.dart
 // Corresponds to Python file: python-docx/src/docx/parts/story.py
 
-import 'dart:io'; // For File/Stream types if used for imageDescriptor
 import 'dart:math' show max; // For finding the max ID
 
-
 import 'package:xml/xml.dart'; // XML package
-import 'package:collection/collection.dart'; // For firstWhereOrNull
 
 // Assuming these files exist and contain the necessary translated classes/enums
 import '../opc/part.dart';
@@ -15,11 +12,10 @@ import 'package:docx_dart/src/shared.dart';// Expects Length, Image
 import '../image/image.dart'; // For Image class definition
 import '../package.dart'; // Expects Package class
 import 'document.dart'; // Expects DocumentPart class
-import 'image.dart'; // Expects ImagePart class
 import '../styles/style.dart'; // Expects BaseStyle
 import 'package:docx_dart/src/enum/style.dart';// Expects WD_STYLE_TYPE
 import '../oxml/oxml_constructors.dart'; // Expects helper for creating inline XML
-import '../oxml/ns.dart'; // For namespace constants like ns['wp'], ns['r'] etc.
+import '../oxml/ns.dart' show nsmap; // For namespace constants like ns['wp'], ns['r'] etc.
 
 /// Base class for story parts like DocumentPart, HeaderPart, FooterPart.
 ///
@@ -43,7 +39,9 @@ class StoryPart extends XmlPart {
     if (currentPackage == null) {
       throw StateError('Cannot add image part: StoryPart is not associated with a package.');
     }
-    // Assumes currentPackage.getOrAddImagePart exists and handles different descriptor types
+    if (currentPackage is! Package) {
+      throw StateError('StoryPart package is not a Wordprocessing Package instance.');
+    }
     final imagePart = currentPackage.getOrAddImagePart(imageDescriptor);
     final rId = relateTo(imagePart, RELATIONSHIP_TYPE.IMAGE);
     return (rId, imagePart.image);
@@ -53,7 +51,7 @@ class StoryPart extends XmlPart {
   ///
   /// Returns the default style for [styleType] if [styleId] is `null` or
   /// does not match a defined style of [styleType].
-  BaseStyle getStyle(String? styleId, WD_STYLE_TYPE styleType) {
+  BaseStyle? getStyle(String? styleId, WD_STYLE_TYPE styleType) {
     return _documentPartLazy.getStyle(styleId, styleType);
   }
 
@@ -107,14 +105,14 @@ class StoryPart extends XmlPart {
     // Efficiently find potential ID attributes
     final potentialIdAttributes = ['id', 'r:id', 'wp:id', 'pic:id'];
 
-    for (final descendant in element.descendants.whereType<XmlElement>()) {
+    for (final descendant in element.element.descendants.whereType<XmlElement>()) {
       for (final attrName in potentialIdAttributes) {
         String? idStr;
         if (attrName.contains(':')) {
           final parts = attrName.split(':');
           final prefix = parts[0];
           final localName = parts[1];
-          final nsUri = ns[prefix]; // Assumes ns map from ns.dart
+          final nsUri = nsmap[prefix];
           if (nsUri != null) {
             idStr = descendant.getAttribute(localName, namespace: nsUri);
           }

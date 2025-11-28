@@ -33,6 +33,17 @@ class _QName {
 
   /// Creates a _QName from a prefixed string like "w:p".
   factory _QName.fromQualifiedName(String qualifiedName) {
+    if (qualifiedName.startsWith('{') && qualifiedName.contains('}')) {
+      final closeIndex = qualifiedName.indexOf('}');
+      if (closeIndex <= 1 || closeIndex >= qualifiedName.length - 1) {
+        throw ArgumentError(
+          "Qualified name '$qualifiedName' must include a non-empty namespace URI and local name",
+        );
+      }
+      final uri = qualifiedName.substring(1, closeIndex);
+      final local = qualifiedName.substring(closeIndex + 1);
+      return _QName(uri.isEmpty ? null : uri, local);
+    }
     final parts = qualifiedName.split(':');
     if (parts.length == 1) {
       // No prefix, assume no namespace (should be rare in OpenXML)
