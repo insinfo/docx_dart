@@ -12,9 +12,13 @@ e atualizando o TODO.md
 - [x] Implementar herança real de headers/footers refinando `CT_SectPr.precedingSectPr` e `iterInnerContent()`.
 - [x] Embutir `default.docx` e XML padrões direto no pacote Dart e remover os arquivos originais de `lib/src/templates` e `python-docx/src/docx/templates`.
 - [x] Portar casos básicos de `python-docx/tests/test_section.py` (tamanhos de página, margens e orientação) para `test/section_test.dart`.
+- [x] Cobrir `Sections` (indexação) e cenários de headers/footers linkados/desvinculados inspirados no restante de `test_section.py`.
+- [x] Exercitar `startType` no nível de `CT_SectPr` e adicionar `Sections.slice` para paridade com o slicing de Python.
+- [x] Portar cenários de `_BaseHeaderFooter` de `test_section.py` via `BaseHeaderFooterHarness`, incluindo `_getOrAddDefinition` e herança de headers/footers.
+- [x] Acrescentar cobertura de merges, alinhamento e `table_direction` em `Table` para paridade com `test_table.py`.
+- [x] Validar integração das seções com documentos contendo imagens, garantindo que headers continuem configuráveis.
+- [x] Exercitar herança de headers/footers em cadeia para validar o novo cálculo de blocos.
+- [x] Adicionar detecção completa de PNG via package:image para expor dimensões/dpi corretos e ajustar o cálculo de escala.
 
 ## Próximos passos
-- [ ] Acrescentar cobertura de testes/manuais para mesclas de células, alinhamento e `table_direction` após o novo proxy.
-- [ ] Exercitar herança de headers/footers entre seções (link/unlink) para validar o novo cálculo de blocos.
-- [ ] Validar integração dos novos módulos com operações de documento (criação de seções, inserção de imagens).
-- [ ] Portar os cenários restantes de `test_section.py` (headers/footers dedicados, tipos de início e tamanhos de página específicos) e cobrir `Sections` slicing/len.
+- [ ] Conectar `Image` ao pipeline de desenho implementando `OxmlConstructors.newPicInline` e validando inserção real de figuras.

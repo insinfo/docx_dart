@@ -8,6 +8,7 @@ dependencies:
   xml: ^6.5.0
   archive: ^4.0.5
   intl: any
+  image: ^4.1.7
 
 dev_dependencies: 
   test: any

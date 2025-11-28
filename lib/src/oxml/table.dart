@@ -2,6 +2,9 @@
 /// Based on python-docx: docx/oxml/table.py
 /// Custom element classes for tables (<w:tbl>, <w:tr>, <w:tc>, etc.).
 
+import 'dart:math';
+
+import 'package:docx_dart/src/exceptions.dart';
 import 'package:docx_dart/src/oxml/shared.dart';
 import 'package:xml/xml.dart';
 
@@ -376,6 +379,28 @@ class CT_Tc extends BaseOxmlElement {
   Length? get width => tcPr?.width;
   set width(Length? val) => getOrAddTcPr().width = val;
 
+  int get left => gridOffset;
+  int get right => gridOffset + gridSpan;
+
+  int get top {
+    final mergeValue = vMerge;
+    if (mergeValue == null || mergeValue == ST_Merge.RESTART) {
+      return _trIdx;
+    }
+    return _tcAbove.top;
+  }
+
+  int get bottom {
+    final mergeValue = vMerge;
+    if (mergeValue != null) {
+      final below = _tcBelow;
+      if (below != null && below.vMerge == ST_Merge.CONTINUE) {
+        return below.bottom;
+      }
+    }
+    return _trIdx + 1;
+  }
+
   int get gridOffset {
     final row = _tr;
     var offset = row.gridBefore;
@@ -391,6 +416,21 @@ class CT_Tc extends BaseOxmlElement {
   int get grid_offset => gridOffset;
 
   List<BaseOxmlElement> get inner_content_elements => innerContentElements;
+
+  List<XmlElement> _blockElements() {
+    final blocks = <XmlElement>[];
+    final wNamespace = nsmap['w'];
+    for (final child in element.children.whereType<XmlElement>()) {
+      if (child.name.namespaceUri != wNamespace) {
+        continue;
+      }
+      final local = child.name.local;
+      if (local == 'p' || local == 'tbl' || local == 'sdt' || local == 'customXml') {
+        blocks.add(child);
+      }
+    }
+    return blocks;
+  }
 
   void clearContent() {
     final removable = <XmlNode>[];
@@ -410,6 +450,52 @@ class CT_Tc extends BaseOxmlElement {
   }
 
   void clear_content() => clearContent();
+
+  bool get _isEmpty {
+    final blocks = _blockElements();
+    if (blocks.isEmpty) {
+      return true;
+    }
+    if (blocks.length > 1) {
+      return false;
+    }
+    final onlyBlock = blocks.first;
+    if (onlyBlock.name.local != 'p') {
+      return false;
+    }
+    return CT_P(onlyBlock).r_lst.isEmpty;
+  }
+
+  void _removeTrailingEmptyP() {
+    final blocks = _blockElements();
+    if (blocks.isEmpty) {
+      return;
+    }
+    final lastBlock = blocks.last;
+    if (lastBlock.name.local != 'p') {
+      return;
+    }
+    final paragraph = CT_P(lastBlock);
+    if (paragraph.r_lst.isNotEmpty) {
+      return;
+    }
+    element.children.remove(lastBlock);
+  }
+
+  void _moveContentTo(CT_Tc otherTc) {
+    if (identical(otherTc.element, element)) {
+      return;
+    }
+    if (_isEmpty) {
+      return;
+    }
+    otherTc._removeTrailingEmptyP();
+    final blocks = _blockElements();
+    for (final block in blocks) {
+      otherTc.element.children.add(block);
+    }
+    element.children.add(CT_P.create());
+  }
 
   CT_P addP() {
     final pElement = CT_P.create();
@@ -473,9 +559,109 @@ class CT_Tc extends BaseOxmlElement {
   CT_Tc get tcAbove => _tcAbove;
 
   CT_Tc merge(CT_Tc otherTc) {
-    print('WARN: CT_Tc.merge() is not fully implemented.');
-    throw UnimplementedError(
-        'CT_Tc.merge() requires complex table structure manipulation.');
+    final (:top, :left, :height, :width) = _spanDimensions(otherTc);
+    final topRow = _enclosingTbl.trList[top];
+    final topLeft = topRow.tcAtGridOffset(left);
+    topLeft._growTo(width, height);
+    return topLeft;
+  }
+
+  void _addWidthOf(CT_Tc otherTc) {
+    final currentWidth = width;
+    final otherWidth = otherTc.width;
+    if (currentWidth == null || otherWidth == null) {
+      return;
+    }
+    width = currentWidth + otherWidth;
+  }
+
+  void _growTo(int width, int height, [CT_Tc? topTc]) {
+    final resolvedTop = topTc ?? this;
+    final mergeValue = identical(resolvedTop, this)
+        ? (height == 1 ? null : ST_Merge.RESTART)
+        : ST_Merge.CONTINUE;
+    _spanToWidth(width, resolvedTop, mergeValue);
+    if (height > 1) {
+      final below = _tcBelow;
+      if (below == null) {
+        throw InvalidSpanError('not enough rows available for merge height');
+      }
+      below._growTo(width, height - 1, resolvedTop);
+    }
+  }
+
+  void _spanToWidth(int gridWidth, CT_Tc topTc, String? mergeValue) {
+    _moveContentTo(topTc);
+    while (gridSpan < gridWidth) {
+      _swallowNextTc(gridWidth, topTc);
+    }
+    vMerge = mergeValue;
+  }
+
+  void _swallowNextTc(int gridWidth, CT_Tc topTc) {
+    final nextTc = _nextTc;
+    if (nextTc == null) {
+      throw InvalidSpanError('not enough grid columns');
+    }
+    if (gridSpan + nextTc.gridSpan > gridWidth) {
+      throw InvalidSpanError('span is not rectangular');
+    }
+    nextTc._moveContentTo(topTc);
+    _addWidthOf(nextTc);
+    gridSpan = gridSpan + nextTc.gridSpan;
+    nextTc._remove();
+  }
+
+  CT_Tc? get _nextTc {
+    final row = _tr;
+    final cells = row.tcList;
+    final idx = cells.indexWhere((tc) => tc.element == element);
+    if (idx == -1 || idx >= cells.length - 1) {
+      return null;
+    }
+    return cells[idx + 1];
+  }
+
+  void _remove() {
+    final parent = element.parent;
+    if (parent is XmlElement) {
+      parent.children.remove(element);
+    }
+  }
+
+  ({int top, int left, int height, int width}) _spanDimensions(CT_Tc otherTc) {
+    void raiseOnInvertedL(CT_Tc a, CT_Tc b) {
+      if (a.top == b.top && a.bottom != b.bottom) {
+        throw InvalidSpanError('requested span not rectangular');
+      }
+      if (a.left == b.left && a.right != b.right) {
+        throw InvalidSpanError('requested span not rectangular');
+      }
+    }
+
+    void raiseOnTeeShaped(CT_Tc a, CT_Tc b) {
+      final topMost = a.top < b.top ? a : b;
+      final other = identical(topMost, a) ? b : a;
+      if (topMost.top < other.top && topMost.bottom > other.bottom) {
+        throw InvalidSpanError('requested span not rectangular');
+      }
+
+      final leftMost = a.left < b.left ? a : b;
+      final otherHorizontal = identical(leftMost, a) ? b : a;
+      if (leftMost.left < otherHorizontal.left &&
+          leftMost.right > otherHorizontal.right) {
+        throw InvalidSpanError('requested span not rectangular');
+      }
+    }
+
+    raiseOnInvertedL(this, otherTc);
+    raiseOnTeeShaped(this, otherTc);
+
+    final top = min(this.top, otherTc.top);
+    final left = min(this.left, otherTc.left);
+    final bottom = max(this.bottom, otherTc.bottom);
+    final right = max(this.right, otherTc.right);
+    return (top: top, left: left, height: bottom - top, width: right - left);
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import 'package:docx_dart/src/shared.dart';
+import 'package:docx_dart/src/oxml/shape.dart';
 
 /// Temporary stub for image-related OOXML factory helpers.
 ///
@@ -15,6 +16,7 @@ class OxmlConstructors {
     required Length cx,
     required Length cy,
   }) {
-    throw UnimplementedError('newPicInline is not implemented yet.');
+    final inline = CT_Inline.newPicInline(shapeId, rId, filename, cx, cy);
+    return inline.element;
   }
 }

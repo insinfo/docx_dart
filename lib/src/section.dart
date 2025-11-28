@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:math';
 
 import 'package:docx_dart/src/blkcntnr.dart';
 import 'package:docx_dart/src/enum/section.dart';
@@ -6,13 +7,17 @@ import 'package:docx_dart/src/oxml/document.dart';
 import 'package:docx_dart/src/oxml/section.dart';
 import 'package:docx_dart/src/oxml/table.dart';
 import 'package:docx_dart/src/oxml/text/paragraph.dart';
+import 'package:docx_dart/src/opc/constants.dart';
+import 'package:docx_dart/src/opc/packuri.dart';
 import 'package:docx_dart/src/parts/document.dart';
 import 'package:docx_dart/src/parts/hdrftr.dart';
 import 'package:docx_dart/src/parts/story.dart';
+import 'package:docx_dart/src/package.dart';
 import 'package:docx_dart/src/shared.dart';
 import 'package:docx_dart/src/table.dart';
 import 'package:docx_dart/src/text/paragraph.dart';
 import 'package:docx_dart/src/types.dart';
+import 'package:meta/meta.dart';
 
 /// Document section, providing access to section and page setup settings.
 /// Also provides access to headers and footers.
@@ -106,6 +111,25 @@ class Sections extends IterableBase<Section> {
 
   int get length => _sectPrList.length;
 
+  List<Section> slice(int start, [int? end]) {
+    final total = _sectPrList.length;
+    final normalizedStart = _normalizeIndex(start, total);
+    final normalizedEnd = _normalizeIndex(end ?? total, total);
+    if (normalizedEnd <= normalizedStart) {
+      return const [];
+    }
+    final sections = <Section>[];
+    for (var idx = normalizedStart; idx < normalizedEnd; idx++) {
+      sections.add(Section(_sectPrList[idx], _documentPart));
+    }
+    return sections;
+  }
+
+  int _normalizeIndex(int index, int length) {
+    final adjusted = index < 0 ? length + index : index;
+    return max(0, min(adjusted, length));
+  }
+
   List<CT_SectPr> get _sectPrList => _documentElm.sectPr_lst;
 }
 
@@ -126,7 +150,7 @@ class _BaseHeaderFooter extends BlockItemContainer {
           () => throw StateError('Uninitialized header/footer element'),
           documentPart,
         ) {
-    setElementProvider(() => _getOrAddDefinition().element);
+    setElementProvider(_currentHdrFtrElement);
   }
 
   bool get isLinkedToPrevious => !_hasDefinition;
@@ -165,6 +189,15 @@ class _BaseHeaderFooter extends BlockItemContainer {
       return prior._getOrAddDefinition();
     }
     return _addDefinition();
+  }
+
+  CT_HdrFtr _currentHdrFtrElement() {
+    final part = _getOrAddDefinition();
+    final element = part.element;
+    if (element is CT_HdrFtr) {
+      return element;
+    }
+    return CT_HdrFtr(element.element);
   }
 }
 
@@ -246,4 +279,63 @@ class _Header extends _BaseHeaderFooter {
     }
     return _Header(preceding, _documentPart, _hdrftrIndex);
   }
+}
+
+/// Test harness exposing `_BaseHeaderFooter` behaviors without requiring
+/// header/footer parts. Only intended for unit tests.
+@visibleForTesting
+class BaseHeaderFooterHarness extends _BaseHeaderFooter {
+  BaseHeaderFooterHarness(
+    CT_SectPr sectPr,
+    DocumentPart documentPart,
+    WD_HEADER_FOOTER hdrftrIndex,
+    {bool hasDefinition = false}
+  )   : _hasDefinitionState = hasDefinition,
+        _definitionPart = hasDefinition ? _HarnessHdrFtrPart() : null,
+        super(sectPr, documentPart, hdrftrIndex);
+
+  BaseHeaderFooterHarness? prior;
+  int addDefinitionCalls = 0;
+  int dropDefinitionCalls = 0;
+  StoryPart? _definitionPart;
+  bool _hasDefinitionState;
+
+  @override
+  StoryPart _addDefinition() {
+    addDefinitionCalls += 1;
+    _definitionPart ??= _HarnessHdrFtrPart();
+    _hasDefinitionState = true;
+    return _definitionPart!;
+  }
+
+  @override
+  StoryPart get _definition {
+    final definition = _definitionPart;
+    if (definition == null) {
+      throw StateError('Harness definition not initialized');
+    }
+    return definition;
+  }
+
+  @override
+  void _dropDefinition() {
+    dropDefinitionCalls += 1;
+    _hasDefinitionState = false;
+  }
+
+  @override
+  bool get _hasDefinition => _hasDefinitionState;
+
+  @override
+  BaseHeaderFooterHarness? get _priorHeaderfooter => prior;
+}
+
+class _HarnessHdrFtrPart extends StoryPart {
+  _HarnessHdrFtrPart()
+      : super(
+          PackUri('/word/harnessHdr.xml'),
+          CONTENT_TYPE.WML_HEADER,
+          CT_HdrFtr(CT_HdrFtr.create(CT_HdrFtr.qnHdr)),
+          Package(),
+        );
 }

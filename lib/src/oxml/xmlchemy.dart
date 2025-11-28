@@ -28,8 +28,9 @@ import 'simpletypes.dart';
 class _QName {
   final String? namespaceUri;
   final String localName;
+  final String? prefix;
 
-  _QName(this.namespaceUri, this.localName);
+  _QName(this.namespaceUri, this.localName, this.prefix);
 
   /// Creates a _QName from a prefixed string like "w:p".
   factory _QName.fromQualifiedName(String qualifiedName) {
@@ -42,12 +43,13 @@ class _QName {
       }
       final uri = qualifiedName.substring(1, closeIndex);
       final local = qualifiedName.substring(closeIndex + 1);
-      return _QName(uri.isEmpty ? null : uri, local);
+      final prefix = pfxmap[uri];
+      return _QName(uri.isEmpty ? null : uri, local, prefix);
     }
     final parts = qualifiedName.split(':');
     if (parts.length == 1) {
       // No prefix, assume no namespace (should be rare in OpenXML)
-      return _QName(null, parts[0]);
+      return _QName(null, parts[0], null);
     }
     if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
       throw ArgumentError(
@@ -60,11 +62,11 @@ class _QName {
     if (uri == null) {
       // Allow 'xml:' prefix even if not explicitly in nsmap
       if (prefix == 'xml') {
-        return _QName('http://www.w3.org/XML/1998/namespace', localName);
+        return _QName('http://www.w3.org/XML/1998/namespace', localName, prefix);
       }
       throw ArgumentError("Namespace prefix '$prefix' not found in nsmap");
     }
-    return _QName(uri, localName);
+    return _QName(uri, localName, prefix);
   }
 
   /// Returns the fully qualified name in Clark notation "{uri}localName".
@@ -228,11 +230,11 @@ class BaseOxmlElement {
   /// [attrName] should be like "w:val" or just "val".
   T? getAttrVal<T>(String attrName, BaseSimpleType<T> st, {T? defaultValue}) {
     final qName = _QName.fromQualifiedName(attrName);
-    final attrValue =
-        element.getAttribute(qName.localName, namespace: qName.namespaceUri);
-    if (attrValue == null) {
+    final attr = _findAttribute(qName);
+    if (attr == null) {
       return defaultValue;
     }
+    final attrValue = attr.value;
     try {
       return st.fromXml(attrValue);
     } catch (e) {
@@ -250,8 +252,6 @@ class BaseOxmlElement {
   void setAttrVal<T>(String attrName, T? value, BaseSimpleType<T> st,
       {T? defaultValue}) {
     final qName = _QName.fromQualifiedName(attrName);
-    final nsUri = qName.namespaceUri;
-    final localName = qName.localName;
 
     // Check against null first, then default value if provided
     bool shouldRemove = (value == null);
@@ -260,7 +260,7 @@ class BaseOxmlElement {
     }
 
     if (shouldRemove) {
-      element.removeAttribute(localName, namespace: nsUri);
+      _removeAttribute(qName);
       return;
     }
 
@@ -270,9 +270,9 @@ class BaseOxmlElement {
         final xmlValue = st.toXml(value);
         // toXml might return null for specific enum cases (like INHERITED)
         if (xmlValue == null) {
-          element.removeAttribute(localName, namespace: nsUri);
+          _removeAttribute(qName);
         } else {
-          element.setAttribute(localName, xmlValue, namespace: nsUri);
+          _setAttribute(qName, xmlValue);
         }
       } catch (e) {
         // Log or handle error appropriately
@@ -289,18 +289,17 @@ class BaseOxmlElement {
   /// [attrName] should be like "w:val" or just "val".
   T getReqAttrVal<T>(String attrName, BaseSimpleType<T> st) {
     final qName = _QName.fromQualifiedName(attrName);
-    final attrValue =
-        element.getAttribute(qName.localName, namespace: qName.namespaceUri);
-    if (attrValue == null) {
+    final attr = _findAttribute(qName);
+    if (attr == null) {
       throw InvalidXmlError(
         "required '$attrName' attribute not present on element ${element.name.qualified}",
       );
     }
     try {
-      return st.fromXml(attrValue);
+      return st.fromXml(attr.value);
     } catch (e) {
       print(
-        'Error converting required attribute $attrName value "$attrValue": $e',
+        'Error converting required attribute $attrName value "${attr.value}": $e',
       );
       rethrow; // Re-throw as it's required
     }
@@ -326,8 +325,7 @@ class BaseOxmlElement {
           "value '$value' converted to null for required attribute '$attrName'");
     }
     final qName = _QName.fromQualifiedName(attrName);
-    element.setAttribute(qName.localName, xmlValue,
-        namespace: qName.namespaceUri);
+    _setAttribute(qName, xmlValue);
   }
 
   /// Finds the first child element matching the prefixed tag name [tagName].
@@ -397,6 +395,47 @@ class BaseOxmlElement {
       );
     }
     return child;
+  }
+
+  XmlAttribute? _findAttribute(_QName qName) {
+    for (final attr in element.attributes) {
+      if (_attributeNamespaceMatches(attr, qName)) {
+        return attr;
+      }
+    }
+    return null;
+  }
+
+  void _removeAttribute(_QName qName) {
+    element.attributes.removeWhere(
+      (attr) => _attributeNamespaceMatches(attr, qName),
+    );
+  }
+
+  void _setAttribute(_QName qName, String value) {
+    _removeAttribute(qName);
+    final attrName = XmlName(qName.localName, qName.prefix);
+    element.attributes.add(XmlAttribute(attrName, value));
+  }
+
+  bool _attributeNamespaceMatches(XmlAttribute attr, _QName qName) {
+    if (attr.name.local != qName.localName) {
+      return false;
+    }
+    final attrNamespace = attr.name.namespaceUri;
+    if (qName.namespaceUri != null) {
+      if (attrNamespace != null) {
+        return attrNamespace == qName.namespaceUri;
+      }
+      if (qName.prefix != null) {
+        return attr.name.prefix == qName.prefix;
+      }
+      return false;
+    }
+    if (qName.prefix != null) {
+      return attr.name.prefix == qName.prefix;
+    }
+    return attr.name.prefix == null;
   }
 
   /// Finds the required list of child elements matching the prefixed tag name [tagName].

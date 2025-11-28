@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:docx_dart/docx_dart.dart' as docx;
+import 'package:docx_dart/src/text/paragraph.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -82,5 +85,44 @@ void main() {
       expect(insertedTable.columns.length, 3);
       expect(insertedTable.style?.name, 'Table Grid');
     });
+
+    test('documents containing images can add sections with independent headers', () {
+      final document = docx.loadDocxDocument(_testFile('having-images.docx'));
+
+      final shapesBefore = document.inlineShapes.length;
+
+      final newSection = document.addSection();
+      final newHeader = newSection.header;
+      expect(newHeader.isLinkedToPrevious, isTrue);
+
+      newHeader.isLinkedToPrevious = false;
+      _ensureParagraph(newHeader).text = 'Image doc header';
+
+      final newHeaderTexts = _paragraphTexts(newHeader);
+      expect(newHeaderTexts, contains('Image doc header'));
+      expect(document.inlineShapes.length, shapesBefore);
+    });
   });
+}
+
+Paragraph _ensureParagraph(dynamic container) {
+  final paragraphs = (container.paragraphs as List<Paragraph>);
+  if (paragraphs.isEmpty) {
+    return container.addParagraph();
+  }
+  return paragraphs.first;
+}
+
+List<String> _paragraphTexts(dynamic container) {
+  final paragraphs = (container.paragraphs as List<Paragraph>);
+  return paragraphs.map((p) => p.text).toList(growable: false);
+}
+
+String _testFile(String filename) {
+  final relative = 'python-docx/tests/test_files/$filename';
+  final file = File(relative);
+  if (!file.existsSync()) {
+    throw StateError('Expected test file at ${file.path}');
+  }
+  return file.path;
 }

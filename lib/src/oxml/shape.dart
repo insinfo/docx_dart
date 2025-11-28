@@ -99,7 +99,7 @@ class CT_GraphicalObject extends BaseOxmlElement {
 class CT_GraphicalObjectData extends BaseOxmlElement {
   CT_GraphicalObjectData(super.element);
   static XmlElement create({String uri = "URI_PLACEHOLDER"}) =>
-      OxmlElement(qnTagName, attrs: {qn('uri'): uri});
+  OxmlElement(qnTagName, attrs: {'uri': uri});
   static final qnTagName = qn('a:graphicData');
 
   CT_Picture? get pic => childOrNull(CT_Picture.qnTagName) == null
@@ -216,7 +216,7 @@ class CT_NonVisualDrawingProps extends BaseOxmlElement {
   static XmlElement create(
           {int id = 0, String name = 'Drawing', String? qnTagName}) =>
       OxmlElement(qnTagName ?? qnDocPr,
-          attrs: {qn('id'): id.toString(), qn('name'): name});
+        attrs: {'id': id.toString(), 'name': name});
   static final qnDocPr = qn('wp:docPr');
   static final qnCNvPr = qn('pic:cNvPr');
 
@@ -240,8 +240,8 @@ class CT_Point2D extends BaseOxmlElement {
     final xVal = x ?? Emu(0);
     final yVal = y ?? Emu(0);
     final attrs = <String, String>{
-      qn('x'): stCoordinateConverter.toXml(xVal)!,
-      qn('y'): stCoordinateConverter.toXml(yVal)!,
+      'x': stCoordinateConverter.toXml(xVal)!,
+      'y': stCoordinateConverter.toXml(yVal)!,
     };
     return OxmlElement(qnTagName, attrs: attrs);
   }
@@ -261,8 +261,8 @@ class CT_PositiveSize2D extends BaseOxmlElement {
     final xVal = cx ?? Emu(0);
     final yVal = cy ?? Emu(0);
     final attrs = <String, String>{
-      qn('cx'): stPositiveCoordinateConverter.toXml(xVal)!,
-      qn('cy'): stPositiveCoordinateConverter.toXml(yVal)!,
+      'cx': stPositiveCoordinateConverter.toXml(xVal)!,
+      'cy': stPositiveCoordinateConverter.toXml(yVal)!,
     };
     return OxmlElement(qnTagName ?? qnExtent, attrs: attrs);
   }
@@ -284,7 +284,7 @@ class CT_PresetGeometry2D extends BaseOxmlElement {
   CT_PresetGeometry2D(super.element);
   static XmlElement create({String prst = 'rect'}) {
     // --- CORRECTION: Create parent then add children ---
-    final prstGeom = OxmlElement(qnTagName, attrs: {qn('prst'): prst});
+    final prstGeom = OxmlElement(qnTagName, attrs: {'prst': prst});
     prstGeom.children.add(OxmlElement(qn('a:avLst'))); // Add empty avLst
     return prstGeom;
     // --- End Correction ---
@@ -364,7 +364,7 @@ class CT_Transform2D extends BaseOxmlElement {
       if (extElement != null && extElement.cy == Emu(0)) {
         removeChild(CT_PositiveSize2D.qnExt);
       } else if (extElement != null) {
-        extElement.element.removeAttribute(qn('cx'));
+        extElement.element.removeAttribute('cx');
       }
     } else {
       getOrAddExt().cx = value;
@@ -378,7 +378,7 @@ class CT_Transform2D extends BaseOxmlElement {
       if (extElement != null && extElement.cx == Emu(0)) {
         removeChild(CT_PositiveSize2D.qnExt);
       } else if (extElement != null) {
-        extElement.element.removeAttribute(qn('cy'));
+        extElement.element.removeAttribute('cy');
       }
     } else {
       getOrAddExt().cy = value;
