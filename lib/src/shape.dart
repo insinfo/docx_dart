@@ -33,10 +33,10 @@ class InlineShapes extends IterableBase<InlineShape> {
   int get length => _inlineElements.length;
 
   List<CT_Inline> get _inlineElements {
-    final tagName = CT_Inline.qnTagName;
+    final inlineUri = nsmap['wp'];
     final inlines = <CT_Inline>[];
     for (final node in _body.element.descendants.whereType<XmlElement>()) {
-      if (node.name.qualified == tagName) {
+      if (node.name.local == 'inline' && node.name.namespaceUri == inlineUri) {
         inlines.add(CT_Inline(node));
       }
     }

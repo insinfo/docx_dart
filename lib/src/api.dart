@@ -13,6 +13,7 @@ import 'package:docx_dart/src/oxml/numbering.dart';
 import 'package:docx_dart/src/package.dart';
 import 'package:docx_dart/src/parts/document.dart';
 import 'package:docx_dart/src/parts/hdrftr.dart';
+import 'package:docx_dart/src/parts/image.dart';
 import 'package:docx_dart/src/parts/numbering.dart';
 import 'package:docx_dart/src/parts/settings.dart';
 import 'package:docx_dart/src/parts/styles.dart';
@@ -47,6 +48,13 @@ void _ensurePartLoadersRegistered() {
   if (_partLoadersRegistered) {
     return;
   }
+
+  PartFactory.partClassSelector = (contentType, reltype) {
+    if (reltype == RELATIONSHIP_TYPE.IMAGE) {
+      return ImagePart.load;
+    }
+    return null;
+  };
 
   void register(String contentType, PartLoadFunction loader) {
     PartFactory.partTypeFor[contentType] = loader;

@@ -1,8 +1,12 @@
 import 'dart:io';
 
 import 'package:docx_dart/docx_dart.dart' as docx;
+import 'package:docx_dart/src/shared.dart';
 import 'package:docx_dart/src/text/paragraph.dart';
+import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'test_file.dart';
 
 void main() {
   docx.Document newDocument() => docx.loadDocxDocument();
@@ -87,7 +91,7 @@ void main() {
     });
 
     test('documents containing images can add sections with independent headers', () {
-      final document = docx.loadDocxDocument(_testFile('having-images.docx'));
+      final document = docx.loadDocxDocument(testFile('having-images.docx'));
 
       final shapesBefore = document.inlineShapes.length;
 
@@ -101,6 +105,34 @@ void main() {
       final newHeaderTexts = _paragraphTexts(newHeader);
       expect(newHeaderTexts, contains('Image doc header'));
       expect(document.inlineShapes.length, shapesBefore);
+    });
+
+    test('addPicture inserts an inline shape that survives save and reload', () async {
+      final document = newDocument();
+      final imagePath = testFile('300-dpi.png');
+      final requestedWidth = Inches(1.5);
+
+      final picture = document.addPicture(imagePath, width: requestedWidth);
+
+      expect(document.inlineShapes.length, equals(1));
+      expect(picture.width, equals(requestedWidth));
+
+      final tempDir = await Directory.systemTemp.createTemp('docx_dart_picture_');
+      addTearDown(() async {
+        if (await tempDir.exists()) {
+          await tempDir.delete(recursive: true);
+        }
+      });
+
+      final savedPath = p.join(tempDir.path, 'picture-roundtrip.docx');
+      document.save(savedPath);
+
+      final reloaded = docx.loadDocxDocument(savedPath);
+      final reloadedPicture = reloaded.inlineShapes.first;
+
+      expect(reloaded.inlineShapes.length, equals(1));
+      expect(reloadedPicture.width, equals(requestedWidth));
+      expect(reloadedPicture.height, equals(picture.height));
     });
   });
 }
@@ -118,11 +150,3 @@ List<String> _paragraphTexts(dynamic container) {
   return paragraphs.map((p) => p.text).toList(growable: false);
 }
 
-String _testFile(String filename) {
-  final relative = 'python-docx/tests/test_files/$filename';
-  final file = File(relative);
-  if (!file.existsSync()) {
-    throw StateError('Expected test file at ${file.path}');
-  }
-  return file.path;
-}

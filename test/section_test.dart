@@ -1,4 +1,4 @@
-import 'dart:io';
+
 
 import 'package:docx_dart/docx_dart.dart';
 import 'package:docx_dart/src/enum/section.dart';
@@ -8,6 +8,8 @@ import 'package:docx_dart/src/table.dart';
 import 'package:docx_dart/src/text/paragraph.dart';
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
+
+import 'test_file.dart';
 
 void main() {
   group('Sections', () {
@@ -353,7 +355,7 @@ void main() {
     });
 
     test('Section.iterInnerContent yields paragraphs and tables in order', () {
-      final path = _testFile('sct-inner-content.docx');
+      final path = testFile('sct-inner-content.docx');
       final document = loadDocxDocument(path);
 
       expect(document.sections.length, 3);
@@ -442,15 +444,6 @@ void main() {
       }
     });
   });
-}
-
-String _testFile(String filename) {
-  final relative = 'python-docx/tests/test_files/$filename';
-  final file = File(relative);
-  if (!file.existsSync()) {
-    throw StateError('Expected test file at ${file.path}');
-  }
-  return file.path;
 }
 
 Paragraph _ensureParagraph(dynamic container) {

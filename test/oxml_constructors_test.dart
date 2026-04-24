@@ -4,8 +4,9 @@ import 'package:docx_dart/src/oxml/ns.dart';
 import 'package:docx_dart/src/oxml/oxml_constructors.dart';
 import 'package:docx_dart/src/oxml/shape.dart';
 import 'package:docx_dart/src/shared.dart';
-import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
+
+import 'test_file.dart';
 
 void main() {
   group('OxmlConstructors.newPicInline', () {
@@ -51,8 +52,7 @@ void main() {
   group('StoryPart.newPicInline', () {
     test('scales requested dimensions using image metadata', () async {
       final document = docx.loadDocxDocument();
-      final pngPath =
-          p.join('python-docx', 'tests', 'test_files', '300-dpi.png');
+        final pngPath = testFile('300-dpi.png');
       final requestedWidth = Inches(1.25);
 
       final inlineElement = document.part

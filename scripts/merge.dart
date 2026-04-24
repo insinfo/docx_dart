@@ -2,16 +2,17 @@
 import 'dart:io';
 
 void main() {
-  // Lista de diretórios a serem processados.
   final List<String> directoryPaths = [
-    r'C:\MyDartProjects\docx_dart\python-docx\src\docx'
+    if (Platform.environment['DOCX_DART_MERGE_SOURCE'] case final source?)
+      source
+    else
+      'tool/fixtures/python-docx/src/docx',
   ];
 
   // Lista de extensões de arquivo que serão incluídas.
   final List<String> extensions = ['.py'];
 
-  // Define o diretório de saída.
-  final String outputDirectoryPath = r'C:\MyDartProjects\docx_dart\output';
+  final String outputDirectoryPath = 'output';
 
   // Cria o diretório de saída caso ele não exista.
   final outputDir = Directory(outputDirectoryPath);
@@ -30,9 +31,11 @@ void main() {
   // Processa cada diretório da lista.
   for (var dirPath in directoryPaths) {
     final directory = Directory(dirPath);
-    // Verifica se o diretório existe.
     if (!directory.existsSync()) {
       print('Diretório não encontrado: $dirPath');
+      print(
+        'Defina DOCX_DART_MERGE_SOURCE ou copie os fontes para tool/fixtures/python-docx/src/docx.',
+      );
       continue;
     }
 

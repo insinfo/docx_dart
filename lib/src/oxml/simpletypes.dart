@@ -167,9 +167,10 @@ class XsdIntConverter extends _BaseIntConverter {
 final xsdIntConverter = XsdIntConverter();
 
 class XsdLongConverter extends _BaseIntConverter {
-  // Dart's int handles 64-bit.
-  static final int minInclusive = -9223372036854775808;
-  static final int maxInclusive = 9223372036854775807;
+  // On the JS backend used by browser tests, ints are limited to the safe
+  // integer range.
+  static const int minInclusive = -9007199254740991;
+  static const int maxInclusive = 9007199254740991;
 
   @override
   void validate(int value) {
@@ -206,8 +207,9 @@ final xsdUnsignedIntConverter = XsdUnsignedIntConverter();
 
 class XsdUnsignedLongConverter extends _BaseIntConverter {
   static const int minInclusive = 0;
-  // Dart's int is 64-bit signed. Use max signed value for practical purposes in OOXML.
-  static final int maxInclusive = 9223372036854775807;
+  // Browser builds run on the JS backend, so keep validation within the safe
+  // integer range there as well.
+  static const int maxInclusive = 9007199254740991;
 
   @override
   void validate(int value) {

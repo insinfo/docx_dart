@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:docx_dart/src/image/image.dart';
@@ -7,6 +6,7 @@ import 'package:docx_dart/src/opc/package.dart';
 import 'package:docx_dart/src/opc/packuri.dart';
 import 'package:docx_dart/src/opc/part.dart';
 import 'package:docx_dart/src/opc/pkgreader.dart';
+import 'package:docx_dart/src/platform/file_access.dart';
 import 'package:docx_dart/src/parts/image.dart';
 
 class Package extends OpcPackage {
@@ -99,9 +99,13 @@ class ImageParts {
       return Image.fromBytes(Uint8List.fromList(descriptor));
     }
     if (descriptor is String) {
-      final file = File(descriptor);
-      final bytes = file.readAsBytesSync();
-      return Image.fromBytes(Uint8List.fromList(bytes), filename: descriptor);
+      final bytes = readFileBytesSync(descriptor);
+      if (bytes == null) {
+        throw UnsupportedError(
+          'Unable to read image from path on this platform. Pass image bytes instead.',
+        );
+      }
+      return Image.fromBytes(bytes, filename: descriptor);
     }
     throw ArgumentError('Unsupported image descriptor type ${descriptor.runtimeType}');
   }

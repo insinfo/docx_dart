@@ -116,11 +116,11 @@ class CT_Types extends BaseOxmlElement {
       .map((node) => CT_Override(node));
 
   void add_default(String ext, String contentType) {
-    element.children.add(CT_Default.newDefault(ext, contentType).element);
+    element.children.add(CT_Default.newDefault(ext, contentType).element.copy());
   }
 
   void add_override(String partname, String contentType) {
-    element.children.add(CT_Override.newOverride(partname, contentType).element);
+    element.children.add(CT_Override.newOverride(partname, contentType).element.copy());
   }
 }
 
@@ -160,7 +160,7 @@ class CT_Relationships extends BaseOxmlElement {
   void add_rel(String rId, String reltype, String target, {bool isExternal = false}) {
     final targetMode = isExternal ? 'External' : 'Internal';
     final rel = CT_Relationship.newRelationship(rId, reltype, target, targetMode: targetMode);
-    element.children.add(rel.element);
+    element.children.add(rel.element.copy());
   }
 
   List<CT_Relationship> get Relationship_lst => element

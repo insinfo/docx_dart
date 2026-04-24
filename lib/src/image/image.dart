@@ -1,13 +1,15 @@
 // docx/image/image.dart
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart' as crypto; // Para sha1
 import 'package:docx_dart/src/shared.dart'; // Para Length, Inches, Emu
+import 'package:docx_dart/src/platform/file_access.dart';
 import 'package:image/image.dart' as img; // Para metadados PNG
+import 'package:image/src/formats/jpeg/jpeg_data.dart';
 import 'package:path/path.dart' as p; // Para basename e splitext
 
 const int _defaultPngDpi = 72;
+const int _defaultJpegDpi = 72;
 
 abstract class BaseImageHeader {
   final int pxWidth;
@@ -37,8 +39,12 @@ class Image {
 
   /// Cria uma instância de [Image] a partir de um caminho de arquivo.
   static Future<Image> fromPath(String imagePath) async {
-    final file = File(imagePath);
-    final blob = await file.readAsBytes();
+    final blob = await readFileBytes(imagePath);
+    if (blob == null) {
+      throw UnsupportedError(
+        'Unable to read image from path on this platform. Pass image bytes instead.',
+      );
+    }
     final header = _ImageHeaderFactory(blob);
     final filename = p.basename(imagePath);
     return Image._internal(blob, filename, header);
@@ -126,7 +132,14 @@ BaseImageHeader _ImageHeaderFactory(Uint8List blob) {
     }
     return _PngImageHeader.fromInfo(info);
   }
-  throw UnimplementedError('Only PNG images are supported at the moment');
+
+  final jpegData = JpegData();
+  if (jpegData.validate(blob)) {
+    jpegData.read(blob);
+    return _JpegImageHeader.fromJpegData(jpegData);
+  }
+
+  throw UnimplementedError('Only PNG and JPEG images are supported at the moment');
 }
 
 class _PngImageHeader extends BaseImageHeader {
@@ -154,6 +167,55 @@ class _PngImageHeader extends BaseImageHeader {
   String get defaultExt => 'png';
 }
 
+class _JpegImageHeader extends BaseImageHeader {
+  _JpegImageHeader({
+    required int pxWidth,
+    required int pxHeight,
+    required int horzDpi,
+    required int vertDpi,
+  }) : super(pxWidth, pxHeight, horzDpi, vertDpi);
+
+  factory _JpegImageHeader.fromJpegData(JpegData jpegData) {
+    final frame = jpegData.frame;
+    final pxWidth = frame?.samplesPerLine;
+    final pxHeight = frame?.scanLines;
+    if (pxWidth == null || pxHeight == null) {
+      throw FormatException('JPEG stream missing frame information');
+    }
+
+    final jfif = jpegData.jfif;
+    final exifIfd = jpegData.exif.imageIfd;
+
+    final jfifDpi = _dpiFromJfif(
+      jfif.densityUnits,
+      jfif.xDensity,
+      jfif.yDensity,
+    );
+
+    final exifDpi = _dpiFromExif(
+      exifIfd.resolutionUnit,
+      exifIfd.xResolution?.toDouble(),
+      exifIfd.yResolution?.toDouble(),
+    );
+
+    final horzDpi = jfifDpi.$1 ?? exifDpi.$1 ?? _defaultJpegDpi;
+    final vertDpi = jfifDpi.$2 ?? exifDpi.$2 ?? _defaultJpegDpi;
+
+    return _JpegImageHeader(
+      pxWidth: pxWidth,
+      pxHeight: pxHeight,
+      horzDpi: horzDpi,
+      vertDpi: vertDpi,
+    );
+  }
+
+  @override
+  String get contentType => 'image/jpeg';
+
+  @override
+  String get defaultExt => 'jpg';
+}
+
 int _dpiFromPixelDimensions(img.PngPhysicalPixelDimensions? dims,
     {required bool horizontal}) {
   if (dims == null) {
@@ -168,6 +230,56 @@ int _dpiFromPixelDimensions(img.PngPhysicalPixelDimensions? dims,
   }
   final dpi = (pxPerUnit * 0.0254).round();
   return dpi > 0 ? dpi : _defaultPngDpi;
+}
+
+(int?, int?) _dpiFromJfif(int? units, int? xDensity, int? yDensity) {
+  if (units == null || xDensity == null || yDensity == null) {
+    return (null, null);
+  }
+
+  if (units == 1) {
+    return (
+      xDensity > 0 ? xDensity : null,
+      yDensity > 0 ? yDensity : null,
+    );
+  }
+
+  if (units == 2) {
+    final xDpi = (xDensity * 2.54).round();
+    final yDpi = (yDensity * 2.54).round();
+    return (
+      xDpi > 0 ? xDpi : null,
+      yDpi > 0 ? yDpi : null,
+    );
+  }
+
+  return (null, null);
+}
+
+(int?, int?) _dpiFromExif(int? resolutionUnit, double? xResolution, double? yResolution) {
+  if (resolutionUnit == null || xResolution == null || yResolution == null) {
+    return (null, null);
+  }
+
+  if (resolutionUnit == 2) {
+    final xDpi = xResolution.round();
+    final yDpi = yResolution.round();
+    return (
+      xDpi > 0 ? xDpi : null,
+      yDpi > 0 ? yDpi : null,
+    );
+  }
+
+  if (resolutionUnit == 3) {
+    final xDpi = (xResolution * 2.54).round();
+    final yDpi = (yResolution * 2.54).round();
+    return (
+      xDpi > 0 ? xDpi : null,
+      yDpi > 0 ? yDpi : null,
+    );
+  }
+
+  return (null, null);
 }
 
 // Definições para Bmp, Gif, etc. viriam aqui, herdando de BaseImageHeader
