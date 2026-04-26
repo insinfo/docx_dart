@@ -24,6 +24,16 @@ jobs:
         id: setup-chrome
         uses: browser-actions/setup-chrome@v1
 
+      - name: Configure Chrome for CI sandbox restrictions
+        run: |
+          cat > "$RUNNER_TEMP/chrome-no-sandbox" <<'EOF'
+          #!/usr/bin/env bash
+          exec "$CHROME_PATH" --no-sandbox "$@"
+          EOF
+          chmod +x "$RUNNER_TEMP/chrome-no-sandbox"
+          echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> "$GITHUB_ENV"
+          echo "CHROME_EXECUTABLE=$RUNNER_TEMP/chrome-no-sandbox" >> "$GITHUB_ENV"
+
       - name: Install dependencies
         run: dart pub get
 
@@ -34,6 +44,4 @@ jobs:
         run: dart test
 
       - name: Run browser tests
-        env:
-          CHROME_EXECUTABLE: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: dart test -p chrome test/browser_document_test.dart -r expanded
