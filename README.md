@@ -4,6 +4,8 @@
 
 `docx_dart` is a Dart library for creating, reading, editing, and saving Microsoft Word `.docx` files. It works with WordprocessingML packages directly, so documents can be generated or modified from Dart and Flutter applications without requiring Microsoft Word or a Python runtime.
 
+This library is a Dart port of the Python `python-docx` project, adapted for the Dart and Flutter ecosystem.
+
 ## Features
 
 - Create a new document from the built-in default template.
@@ -254,3 +256,7 @@ dart test -p chrome test/browser_document_test.dart
 ## CI
 
 The GitHub Actions workflow validates the package on Ubuntu 24.04 with Dart 3.6.2. It installs dependencies, runs static analysis, executes VM tests, and runs the browser document test in Chrome.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
