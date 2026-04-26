@@ -1,16 +1,18 @@
 name: docx_dart
 version: 1.0.0
+description: A Dart library for creating, reading, editing, and saving Microsoft Word .docx files.
+repository: https://github.com/insinfo/docx_dart
 
 environment:
   sdk: ^3.6.0
 
-dependencies: 
-  xml: ^6.5.0
-  intl: any
-  image: ^4.1.7
-  crypto: ^3.0.3
+dependencies:
+  collection: ^1.19.1
+  crypto: ^3.0.6
+  image: ^4.5.4
+  meta: ^1.16.0
   path: ^1.9.0
+  xml: ^6.5.0
 
-dev_dependencies: 
-  test: any
-  
+dev_dependencies:
+  test: ^1.25.15
