@@ -1,0 +1,9 @@
+# Development-only files that are not needed by package consumers.
+test/
+scripts/
+tool/
+roteiro.md
+referencias/
+build/
+.github/
+.vscode/
