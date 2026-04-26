@@ -61,5 +61,6 @@ void main() {
     }
   }
 
-  print('Merge completo! Arquivo "merged_files.py" criado com sucesso no diretório "$outputDirectoryPath".');
+  print(
+      'Merge completo! Arquivo "merged_files.py" criado com sucesso no diretório "$outputDirectoryPath".');
 }

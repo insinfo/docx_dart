@@ -58,7 +58,8 @@ class LatentStyles extends ElementProxy with IterableMixin<_LatentStyle> {
   set defaultToQuickStyle(bool value) =>
       _setBoolAttr('defQFormat', value, removeOnFalse: true);
 
-  bool get defaultToUnhideWhenUsed => _getBoolAttr('defUnhideWhenUsed') ?? false;
+  bool get defaultToUnhideWhenUsed =>
+      _getBoolAttr('defUnhideWhenUsed') ?? false;
   set defaultToUnhideWhenUsed(bool value) =>
       _setBoolAttr('defUnhideWhenUsed', value, removeOnFalse: true);
 
@@ -78,7 +79,8 @@ class LatentStyles extends ElementProxy with IterableMixin<_LatentStyle> {
     if (value == null) {
       element.element.removeAttribute(name, namespace: nsmap['w']);
     } else {
-      element.element.setAttribute(name, value.toString(), namespace: nsmap['w']);
+      element.element
+          .setAttribute(name, value.toString(), namespace: nsmap['w']);
     }
   }
 
@@ -121,8 +123,8 @@ class _LatentStyle extends ElementProxy {
   bool? get locked => _getTriState('locked');
   set locked(bool? value) => _setTriState('locked', value);
 
-  String get name =>
-      BabelFish.internal2ui(element.element.getAttribute('name', namespace: nsmap['w']) ?? '');
+  String get name => BabelFish.internal2ui(
+      element.element.getAttribute('name', namespace: nsmap['w']) ?? '');
 
   int? get priority => _getIntAttr('uiPriority');
   set priority(int? value) => _setIntAttr('uiPriority', value);
@@ -166,7 +168,8 @@ class _LatentStyle extends ElementProxy {
     if (value == null) {
       element.element.removeAttribute(name, namespace: nsmap['w']);
     } else {
-      element.element.setAttribute(name, value.toString(), namespace: nsmap['w']);
+      element.element
+          .setAttribute(name, value.toString(), namespace: nsmap['w']);
     }
   }
 }

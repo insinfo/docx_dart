@@ -30,7 +30,8 @@ void main() {
   });
 
   group('JPEG metadata', () {
-    test('Image.fromPath reads default dimensions from baseline JPEG', () async {
+    test('Image.fromPath reads default dimensions from baseline JPEG',
+        () async {
       final jpegPath = testFile('python-icon.jpeg');
       final image = await Image.fromPath(jpegPath);
 
@@ -42,7 +43,8 @@ void main() {
       expect(image.vertDpi, equals(72));
     });
 
-    test('Image.fromPath reads physical dimensions from JFIF JPEG header', () async {
+    test('Image.fromPath reads physical dimensions from JFIF JPEG header',
+        () async {
       final jpegPath = testFile('300-dpi.jpg');
       final image = await Image.fromPath(jpegPath);
 

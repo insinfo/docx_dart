@@ -66,7 +66,6 @@ class PackUri {
   /// Returns `''` for the root URI `'/'`.
   String get filename => uri == '/' ? '' : p.url.basename(uri);
 
-
   /// The numeric index parsed from the filename, or `null`.
   ///
   /// Assumes filenames like "item1.ext", "image42.png".
@@ -78,10 +77,9 @@ class PackUri {
     if (namePart.isEmpty) return null;
     // Regex to capture potential trailing digits after some letters
     final match = RegExp(r'([a-zA-Z]+)([1-9]\d*)$').firstMatch(namePart);
-     if (match == null || match.group(2) == null) return null;
-     return int.tryParse(match.group(2)!);
+    if (match == null || match.group(2) == null) return null;
+    return int.tryParse(match.group(2)!);
   }
-
 
   /// The pack URI string without the leading slash.
   ///
@@ -95,29 +93,28 @@ class PackUri {
   /// Example: `PackUri('/ppt/slideLayouts/slideLayout1.xml').relativeRef('/ppt/slides')`
   /// returns `'../slideLayouts/slideLayout1.xml'`.
   String relativeRef(String baseUriPath) {
-     if (!baseUriPath.startsWith('/')) {
-      throw ArgumentError("baseUriPath must begin with slash, got '$baseUriPath'");
+    if (!baseUriPath.startsWith('/')) {
+      throw ArgumentError(
+          "baseUriPath must begin with slash, got '$baseUriPath'");
     }
     // p.relative has issues when `from` is '/', handle explicitly
     if (baseUriPath == '/') return membername;
     return p.url.relative(uri, from: baseUriPath);
   }
 
-
   /// The [PackUri] of the relationship part corresponding to this URI.
   ///
   /// Example: `'/word/_rels/document.xml.rels'` for `'/word/document.xml'`.
   PackUri get relsUri {
-     final name = filename;
-     // Handle root case explicitly
-      final relsFilename = name.isEmpty ? '.rels' : '$name.rels';
-      final base = baseUri;
-      // Use p.url.join which handles '/' correctly
-      final relsUriString = p.url.join(base, '_rels', relsFilename);
-      // Normalize to ensure clean path starting with '/'
-      return PackUri(p.url.normalize(relsUriString));
+    final name = filename;
+    // Handle root case explicitly
+    final relsFilename = name.isEmpty ? '.rels' : '$name.rels';
+    final base = baseUri;
+    // Use p.url.join which handles '/' correctly
+    final relsUriString = p.url.join(base, '_rels', relsFilename);
+    // Normalize to ensure clean path starting with '/'
+    return PackUri(p.url.normalize(relsUriString));
   }
-
 
   @override
   String toString() => uri;

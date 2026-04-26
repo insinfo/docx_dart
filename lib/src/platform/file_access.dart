@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import 'file_access_stub.dart' if (dart.library.io) 'file_access_io.dart' as impl;
+import 'file_access_stub.dart' if (dart.library.io) 'file_access_io.dart'
+    as impl;
 
 bool get supportsFileAccess => impl.supportsFileAccess;
 

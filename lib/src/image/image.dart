@@ -139,7 +139,8 @@ BaseImageHeader _ImageHeaderFactory(Uint8List blob) {
     return _JpegImageHeader.fromJpegData(jpegData);
   }
 
-  throw UnimplementedError('Only PNG and JPEG images are supported at the moment');
+  throw UnimplementedError(
+      'Only PNG and JPEG images are supported at the moment');
 }
 
 class _PngImageHeader extends BaseImageHeader {
@@ -256,7 +257,8 @@ int _dpiFromPixelDimensions(img.PngPhysicalPixelDimensions? dims,
   return (null, null);
 }
 
-(int?, int?) _dpiFromExif(int? resolutionUnit, double? xResolution, double? yResolution) {
+(int?, int?) _dpiFromExif(
+    int? resolutionUnit, double? xResolution, double? yResolution) {
   if (resolutionUnit == null || xResolution == null || yResolution == null) {
     return (null, null);
   }

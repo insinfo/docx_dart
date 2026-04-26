@@ -22,9 +22,8 @@ class Hyperlink extends Parented {
     return rel?.targetRef ?? '';
   }
 
-    /// True when the hyperlink text is broken across page boundaries.
-  bool get containsPageBreak =>
-      _hyperlink.lastRenderedPageBreaks.isNotEmpty;
+  /// True when the hyperlink text is broken across page boundaries.
+  bool get containsPageBreak => _hyperlink.lastRenderedPageBreaks.isNotEmpty;
 
   /// Bookmark or fragment reference without the leading '#'. Empty when absent.
   String get fragment => _hyperlink.anchor ?? '';

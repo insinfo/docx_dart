@@ -140,7 +140,8 @@ Part _loadCorePropertiesPart(
   opc.OpcPackage package,
 ) {
   final element = parse_xml(blob);
-  final coreElement =
-      element is CT_CoreProperties ? element : CT_CoreProperties(element.element);
+  final coreElement = element is CT_CoreProperties
+      ? element
+      : CT_CoreProperties(element.element);
   return CorePropertiesPart(partname, contentType, coreElement, package);
 }

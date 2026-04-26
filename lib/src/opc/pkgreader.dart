@@ -1,7 +1,8 @@
 // docx/opc/pkgreader.py
 import 'dart:typed_data';
 import 'package:docx_dart/src/opc/constants.dart';
-import 'package:docx_dart/src/opc/oxml.dart' as opc_oxml; // Para parse_xml e classes CT_*
+import 'package:docx_dart/src/opc/oxml.dart'
+    as opc_oxml; // Para parse_xml e classes CT_*
 import 'package:docx_dart/src/opc/packuri.dart';
 import 'package:docx_dart/src/opc/phys_pkg.dart';
 import 'package:docx_dart/src/opc/shared.dart'; // Para CaseInsensitiveMap
@@ -14,9 +15,11 @@ class SerializedRelationship {
   final String targetRef;
   PackUri? _targetPartname; // Cache
 
-  SerializedRelationship._(this._baseUri, this.rId, this.reltype, this.targetMode, this.targetRef);
+  SerializedRelationship._(
+      this._baseUri, this.rId, this.reltype, this.targetMode, this.targetRef);
 
-  factory SerializedRelationship.fromElement(String baseUri, opc_oxml.CT_Relationship relElm) {
+  factory SerializedRelationship.fromElement(
+      String baseUri, opc_oxml.CT_Relationship relElm) {
     return SerializedRelationship._(
       baseUri,
       relElm.rId,
@@ -30,7 +33,8 @@ class SerializedRelationship {
 
   PackUri get targetPartname {
     if (isExternal) {
-      throw StateError('targetPartname is undefined where TargetMode == External');
+      throw StateError(
+          'targetPartname is undefined where TargetMode == External');
     }
     _targetPartname ??= PackUri.fromRelativeRef(_baseUri, targetRef);
     return _targetPartname!;
@@ -57,13 +61,12 @@ class SerializedRelationships extends Iterable<SerializedRelationship> {
   Iterator<SerializedRelationship> get iterator => _srels.iterator;
 }
 
-
 class ContentTypeMap {
- ContentTypeMap();
- final Map<String, String> _overrides = CaseInsensitiveMap<String>();
- final Map<String, String> _defaults = CaseInsensitiveMap<String>();
+  ContentTypeMap();
+  final Map<String, String> _overrides = CaseInsensitiveMap<String>();
+  final Map<String, String> _defaults = CaseInsensitiveMap<String>();
 
- String operator [](PackUri partname) {
+  String operator [](PackUri partname) {
     final partnameStr = partname.uri;
     if (_overrides.containsKey(partnameStr)) {
       return _overrides[partnameStr]!;
@@ -72,11 +75,13 @@ class ContentTypeMap {
     if (_defaults.containsKey(ext)) {
       return _defaults[ext]!;
     }
-    throw ArgumentError("no content type for partname '$partname' in [Content_Types].xml");
- }
+    throw ArgumentError(
+        "no content type for partname '$partname' in [Content_Types].xml");
+  }
 
- factory ContentTypeMap.fromXml(Uint8List contentTypesXml) {
-    final typesElm = opc_oxml.parse_xml(String.fromCharCodes(contentTypesXml)) as opc_oxml.CT_Types;
+  factory ContentTypeMap.fromXml(Uint8List contentTypesXml) {
+    final typesElm = opc_oxml.parse_xml(String.fromCharCodes(contentTypesXml))
+        as opc_oxml.CT_Types;
     final ctMap = ContentTypeMap();
     for (final o in typesElm.overrides) {
       ctMap._addOverride(o.partname, o.content_type);
@@ -85,36 +90,35 @@ class ContentTypeMap {
       ctMap._addDefault(d.extension, d.content_type);
     }
     return ctMap;
- }
+  }
 
- void _addDefault(String extension, String contentType) {
+  void _addDefault(String extension, String contentType) {
     _defaults[extension] = contentType;
- }
+  }
 
- void _addOverride(String partname, String contentType) {
+  void _addOverride(String partname, String contentType) {
     _overrides[partname] = contentType;
- }
+  }
 }
-
 
 class SerializedPart {
- final PackUri partname;
- final String contentType;
- final String reltype; // Relationship type *referring* to this part
- final Uint8List blob;
- final SerializedRelationships srels;
+  final PackUri partname;
+  final String contentType;
+  final String reltype; // Relationship type *referring* to this part
+  final Uint8List blob;
+  final SerializedRelationships srels;
 
- SerializedPart(this.partname, this.contentType, this.reltype, this.blob, this.srels);
+  SerializedPart(
+      this.partname, this.contentType, this.reltype, this.blob, this.srels);
 }
 
-
 class PackageReader {
- final SerializedRelationships _pkgSrels;
- final List<SerializedPart> _sparts;
+  final SerializedRelationships _pkgSrels;
+  final List<SerializedPart> _sparts;
 
- PackageReader._(this._pkgSrels, this._sparts);
+  PackageReader._(this._pkgSrels, this._sparts);
 
- static PackageReader fromFile(dynamic pkgFile) {
+  static PackageReader fromFile(dynamic pkgFile) {
     final physReader = PhysPkgReader(pkgFile);
     try {
       final contentTypes = ContentTypeMap.fromXml(physReader.contentTypesXml);
@@ -124,15 +128,15 @@ class PackageReader {
     } finally {
       physReader.close();
     }
- }
+  }
 
- Iterable<(PackUri, String, String, Uint8List)> iterSparts() sync* {
+  Iterable<(PackUri, String, String, Uint8List)> iterSparts() sync* {
     for (final s in _sparts) {
       yield (s.partname, s.contentType, s.reltype, s.blob);
     }
- }
+  }
 
- Iterable<(PackUri, SerializedRelationship)> iterSrels() sync* {
+  Iterable<(PackUri, SerializedRelationship)> iterSrels() sync* {
     for (final srel in _pkgSrels) {
       yield (PACKAGE_URI, srel);
     }
@@ -141,9 +145,9 @@ class PackageReader {
         yield (spart.partname, srel);
       }
     }
- }
+  }
 
- static List<SerializedPart> _loadSerializedParts(
+  static List<SerializedPart> _loadSerializedParts(
     PhysPkgReader physReader,
     SerializedRelationships pkgSrels,
     ContentTypeMap contentTypes,
@@ -163,7 +167,8 @@ class PackageReader {
         final blob = physReader.blobFor(partname);
         final contentType = contentTypes[partname];
 
-        final spart = SerializedPart(partname, contentType, reltype, blob, partSrels);
+        final spart =
+            SerializedPart(partname, contentType, reltype, blob, partSrels);
         sparts.add(spart);
         walkParts(partSrels); // Recurse
       }
@@ -171,11 +176,11 @@ class PackageReader {
 
     walkParts(pkgSrels);
     return sparts;
- }
+  }
 
-
- static SerializedRelationships _srelsFor(PhysPkgReader physReader, PackUri sourceUri) {
+  static SerializedRelationships _srelsFor(
+      PhysPkgReader physReader, PackUri sourceUri) {
     final relsXml = physReader.relsXmlFor(sourceUri);
     return SerializedRelationships.loadFromXml(sourceUri.baseUri, relsXml);
- }
+  }
 }

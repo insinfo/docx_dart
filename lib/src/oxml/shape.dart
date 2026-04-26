@@ -99,7 +99,7 @@ class CT_GraphicalObject extends BaseOxmlElement {
 class CT_GraphicalObjectData extends BaseOxmlElement {
   CT_GraphicalObjectData(super.element);
   static XmlElement create({String uri = "URI_PLACEHOLDER"}) =>
-  OxmlElement(qnTagName, attrs: {'uri': uri});
+      OxmlElement(qnTagName, attrs: {'uri': uri});
   static final qnTagName = qn('a:graphicData');
 
   CT_Picture? get pic => childOrNull(CT_Picture.qnTagName) == null
@@ -216,7 +216,7 @@ class CT_NonVisualDrawingProps extends BaseOxmlElement {
   static XmlElement create(
           {int id = 0, String name = 'Drawing', String? qnTagName}) =>
       OxmlElement(qnTagName ?? qnDocPr,
-        attrs: {'id': id.toString(), 'name': name});
+          attrs: {'id': id.toString(), 'name': name});
   static final qnDocPr = qn('wp:docPr');
   static final qnCNvPr = qn('pic:cNvPr');
 

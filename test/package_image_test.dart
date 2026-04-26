@@ -40,7 +40,8 @@ void main() {
   });
 
   group('Package image pipeline', () {
-    test('reuses the same related image part for duplicate image descriptors', () {
+    test('reuses the same related image part for duplicate image descriptors',
+        () {
       final document = docx.loadDocxDocument();
       final package = document.part.package as Package;
       final imagePath = testFile('300-dpi.png');
@@ -62,14 +63,16 @@ void main() {
       document.part.getOrAddImage(testFile('python-icon.jpeg'));
 
       final imageParts = package.parts.whereType<ImagePart>().toList()
-        ..sort((left, right) => left.partname.uri.compareTo(right.partname.uri));
+        ..sort(
+            (left, right) => left.partname.uri.compareTo(right.partname.uri));
 
       expect(imageParts, hasLength(2));
       expect(imageParts[0].partname.uri, equals('/word/media/image1.jpeg'));
       expect(imageParts[1].partname.uri, equals('/word/media/image1.png'));
     });
 
-    test('gathers embedded image parts when loading a document with images', () {
+    test('gathers embedded image parts when loading a document with images',
+        () {
       final document = docx.loadDocxDocument(testFile('having-images.docx'));
       final package = document.part.package as Package;
       final imageParts = package.parts.whereType<ImagePart>().toList();
@@ -81,4 +84,3 @@ void main() {
     });
   });
 }
-

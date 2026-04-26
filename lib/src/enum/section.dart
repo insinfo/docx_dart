@@ -33,15 +33,17 @@ enum WD_HEADER_FOOTER_INDEX {
 
   /// Returns the enum member corresponding to the XML attribute value `xmlValue`.
   static WD_HEADER_FOOTER_INDEX fromXml(String? xmlValue) {
-     if (xmlValue == null) {
-       throw ArgumentError('WD_HEADER_FOOTER_INDEX.fromXml() requires a non-null String argument');
+    if (xmlValue == null) {
+      throw ArgumentError(
+          'WD_HEADER_FOOTER_INDEX.fromXml() requires a non-null String argument');
     }
     for (final member in values) {
       if (member.xmlValue == xmlValue) {
         return member;
       }
     }
-    throw ArgumentError('WD_HEADER_FOOTER_INDEX has no XML mapping for "$xmlValue"');
+    throw ArgumentError(
+        'WD_HEADER_FOOTER_INDEX has no XML mapping for "$xmlValue"');
   }
 
   /// Returns the XML value for the given enum member `value`.
@@ -55,7 +57,6 @@ enum WD_HEADER_FOOTER_INDEX {
 
 /// Alias for [WD_HEADER_FOOTER_INDEX].
 typedef WD_HEADER_FOOTER = WD_HEADER_FOOTER_INDEX;
-
 
 /// Specifies the page layout orientation.
 ///
@@ -89,8 +90,9 @@ enum WD_ORIENTATION {
 
   /// Returns the enum member corresponding to the XML attribute value `xmlValue`.
   static WD_ORIENTATION fromXml(String? xmlValue) {
-     if (xmlValue == null) {
-       throw ArgumentError('WD_ORIENTATION.fromXml() requires a non-null String argument');
+    if (xmlValue == null) {
+      throw ArgumentError(
+          'WD_ORIENTATION.fromXml() requires a non-null String argument');
     }
     for (final member in values) {
       if (member.xmlValue == xmlValue) {
@@ -111,7 +113,6 @@ enum WD_ORIENTATION {
 
 /// Alias for [WD_ORIENTATION].
 typedef WD_ORIENT = WD_ORIENTATION;
-
 
 /// Specifies the start type of a section break.
 ///
@@ -154,8 +155,9 @@ enum WD_SECTION_START {
 
   /// Returns the enum member corresponding to the XML attribute value `xmlValue`.
   static WD_SECTION_START fromXml(String? xmlValue) {
-     if (xmlValue == null) {
-       throw ArgumentError('WD_SECTION_START.fromXml() requires a non-null String argument');
+    if (xmlValue == null) {
+      throw ArgumentError(
+          'WD_SECTION_START.fromXml() requires a non-null String argument');
     }
     for (final member in values) {
       if (member.xmlValue == xmlValue) {

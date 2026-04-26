@@ -160,7 +160,6 @@ class CT_Document extends BaseOxmlElement {
     // --- End Correction ---
   }
 
-
   static final qnTagName = qn('w:document');
 
   // --- Descriptors ---

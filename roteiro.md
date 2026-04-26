@@ -191,8 +191,8 @@ Referencia original:
 Estado real:
 
 - existe base estrutural;
-- `NumberingPart.newPart()` ainda nao foi implementado;
-- listas e fluxos de numeracao ainda nao podem ser tratados como concluidos.
+- `NumberingPart.newPart()` ja cria e relaciona uma parte `numbering.xml` vazia;
+- listas e fluxos de numeracao de paragrafos ainda nao podem ser tratados como concluidos.
 
 ### DrawingML
 
@@ -225,9 +225,14 @@ Falta portar a logica equivalente a:
 
 ### Suporte completo de numeracao
 
-Falta concluir:
+Parcialmente concluido:
 
 - `lib/src/parts/numbering.dart`
+
+Ainda falta:
+
+- API de alto nivel para listas e numeracao de paragrafos;
+- leitura e criacao consistente de definicoes concretas e abstratas de numeracao.
 
 ### Leitura de pacote por diretorio
 
@@ -267,7 +272,7 @@ Motivo:
 
 Entrega esperada:
 
-- `NumberingPart.newPart()` funcional;
+- API de alto nivel para aplicar listas a paragrafos;
 - criacao e leitura consistente de definicoes de numeracao.
 
 ### Prioridade 3

@@ -103,6 +103,7 @@ class _TestDocumentPart extends DocumentPart {
 
 CT_Document _testDocumentElement() {
   const wNs = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
-  final xml = XmlDocument.parse('<w:document xmlns:w="$wNs"><w:body/></w:document>');
+  final xml =
+      XmlDocument.parse('<w:document xmlns:w="$wNs"><w:body/></w:document>');
   return CT_Document(xml.rootElement);
 }

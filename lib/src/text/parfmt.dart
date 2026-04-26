@@ -43,6 +43,7 @@ class ParagraphFormat extends ElementProxy {
     }
     return line;
   }
+
   set lineSpacing(dynamic value) {
     final pPr = _pPrRequired;
     if (value == null) {
@@ -81,6 +82,7 @@ class ParagraphFormat extends ElementProxy {
     }
     return rule;
   }
+
   set lineSpacingRule(WD_LINE_SPACING? value) {
     final pPr = _pPrRequired;
     if (value == WD_LINE_SPACING.SINGLE) {
@@ -112,8 +114,7 @@ class ParagraphFormat extends ElementProxy {
   Length? get spaceBefore => _pPr?.spacingBefore;
   set spaceBefore(Length? value) => _pPrRequired.spacingBefore = value;
 
-  TabStops get tabStops =>
-      _tabStops ??= TabStops(_paragraph.getOrAddPPr());
+  TabStops get tabStops => _tabStops ??= TabStops(_paragraph.getOrAddPPr());
 
   bool? get widowControl => _pPr?.widowControlVal;
   set widowControl(bool? value) => _pPrRequired.widowControlVal = value;

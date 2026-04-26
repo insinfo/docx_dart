@@ -9,11 +9,11 @@ import 'package:docx_dart/src/oxml/shared.dart';
 import 'package:xml/xml.dart';
 
 import '../enum/table.dart' // Enums específicos de tabela
-  show
-    WD_CELL_VERTICAL_ALIGNMENT,
-    WD_ROW_HEIGHT_RULE,
-    WD_TABLE_ALIGNMENT,
-    WD_TABLE_DIRECTION;
+    show
+        WD_CELL_VERTICAL_ALIGNMENT,
+        WD_ROW_HEIGHT_RULE,
+        WD_TABLE_ALIGNMENT,
+        WD_TABLE_DIRECTION;
 
 import '../enum/text.dart';
 
@@ -425,7 +425,10 @@ class CT_Tc extends BaseOxmlElement {
         continue;
       }
       final local = child.name.local;
-      if (local == 'p' || local == 'tbl' || local == 'sdt' || local == 'customXml') {
+      if (local == 'p' ||
+          local == 'tbl' ||
+          local == 'sdt' ||
+          local == 'customXml') {
         blocks.add(child);
       }
     }

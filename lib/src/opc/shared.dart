@@ -80,7 +80,6 @@ class CaseInsensitiveMap<V> extends MapBase<String, V> {
   // isNotEmpty is provided by MapBase based on length
   @override
   bool get isNotEmpty => _innerMap.isNotEmpty;
-
 }
 
 // Note: The Python function `cls_method_fn` uses dynamic attribute access

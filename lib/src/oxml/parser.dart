@@ -105,8 +105,7 @@ XmlElement OxmlElement(String nsptagStr,
       String attrLocalName;
       String? attrUri;
       if (attrName.startsWith('{') && attrName.contains('}')) {
-        final tag =
-            NamespacePrefixedTag.fromClarkName(attrName);
+        final tag = NamespacePrefixedTag.fromClarkName(attrName);
         attrPrefix = tag.nspfx;
         attrLocalName = tag.localPart;
         attrUri = tag.nsuri;
@@ -171,7 +170,6 @@ XmlElement OxmlElement(String nsptagStr,
   return element;
 }
 
-
 /// Creates a 'loose' [XmlElement] (not attached to a document tree)
 /// with the specified prefixed tag name [nsptagStr], attributes, namespace
 /// declarations, AND optional children.
@@ -191,7 +189,8 @@ XmlElement OxmlElement(String nsptagStr,
 XmlElement OxmlElementWithChildren(String nsptagStr,
     {Map<String, String>? attrs,
     Map<String, String>? nsdecls,
-    List<XmlElement>? children}) { // Added children parameter
+    List<XmlElement>? children}) {
+  // Added children parameter
   // 1. Create the parent element using the original function
   //    This handles tag parsing, attributes, and namespace declarations correctly.
   final parentElement = OxmlElement(nsptagStr, attrs: attrs, nsdecls: nsdecls);
@@ -209,4 +208,3 @@ XmlElement OxmlElementWithChildren(String nsptagStr,
   // 3. Return the parent element with its children added
   return parentElement;
 }
-

@@ -24,6 +24,7 @@ class CT_Settings extends BaseOxmlElement {
   static final _tagSeq = [
     // ... many tags before ...
     qn("w:defaultTableStyle"),
+    qn("w:updateFields"),
     qn("w:evenAndOddHeaders"), // Index 47 in the Python list (0-based)
     qn("w:bookFoldRevPrinting"),
     // ... many tags after ...
@@ -33,20 +34,27 @@ class CT_Settings extends BaseOxmlElement {
   static final _evenAndOddHeaders =
       ZeroOrOne<CT_OnOff>(qn('w:evenAndOddHeaders'),
           // Successors start from the element *after* evenAndOddHeaders
-          successors: _tagSeq.sublist(48));
+          successors: _tagSeq.sublist(3));
+  static final _updateFields =
+      ZeroOrOne<CT_OnOff>(qn('w:updateFields'), successors: _tagSeq.sublist(2));
 
   // --- Property Accessors ---
 
   /// The `<w:evenAndOddHeaders>` child element, or `null` if not present.
   CT_OnOff? get evenAndOddHeaders =>
       _evenAndOddHeaders.getElement(this, (el) => CT_OnOff(el));
+  CT_OnOff? get updateFields =>
+      _updateFields.getElement(this, (el) => CT_OnOff(el));
 
   /// Returns the `<w:evenAndOddHeaders>` child, creating it if necessary.
   CT_OnOff getOrAddEvenAndOddHeaders() => _evenAndOddHeaders.getOrAdd(this,
       () => CT_OnOff.create(qn('w:evenAndOddHeaders')), (el) => CT_OnOff(el));
+  CT_OnOff getOrAddUpdateFields() => _updateFields.getOrAdd(
+      this, () => CT_OnOff.create(qn('w:updateFields')), (el) => CT_OnOff(el));
 
   /// Removes the `<w:evenAndOddHeaders>` child element if present.
   void removeEvenAndOddHeaders() => _evenAndOddHeaders.remove(this);
+  void removeUpdateFields() => _updateFields.remove(this);
 
   /// Alias for removeEvenAndOddHeaders to match Python internal method name hint
   void remove_evenAndOddHeaders() => removeEvenAndOddHeaders();
@@ -71,12 +79,7 @@ class CT_Settings extends BaseOxmlElement {
     if (value == null || !value) {
       removeEvenAndOddHeaders();
     } else {
-      // Ensure the element exists. CT_OnOff handles the val attribute logic.
-      // Getting or adding ensures it exists. We don't need to explicitly set val=true
-      // because the presence of the element implies true by default according to CT_OnOff.
-      getOrAddEvenAndOddHeaders();
-      // Optional: Explicitly set val=true if CT_OnOff doesn't handle default correctly
-      // getOrAddEvenAndOddHeaders().val = true;
+      getOrAddEvenAndOddHeaders().val = true;
     }
   }
 
@@ -85,4 +88,18 @@ class CT_Settings extends BaseOxmlElement {
 
   /// Alias for evenAndOddHeadersVal getter
   bool get evenAndOddHeaders_val => evenAndOddHeadersVal;
+
+  /// True when Word should update document fields when the file is opened.
+  bool get updateFieldsVal => updateFields?.val ?? false;
+
+  set updateFieldsVal(bool? value) {
+    if (value == null || !value) {
+      removeUpdateFields();
+    } else {
+      getOrAddUpdateFields().val = true;
+    }
+  }
+
+  set updateFields_val(bool? value) => updateFieldsVal = value;
+  bool get updateFields_val => updateFieldsVal;
 }

@@ -8,7 +8,8 @@ const Map<String, String> nsmap = {
   "a": "http://schemas.openxmlformats.org/drawingml/2006/main",
   "c": "http://schemas.openxmlformats.org/drawingml/2006/chart",
   "ct": "http://schemas.openxmlformats.org/package/2006/content-types",
-  "cp": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+  "cp":
+      "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
   "dc": "http://purl.org/dc/elements/1.1/",
   "dcmitype": "http://purl.org/dc/dcmitype/",
   "dcterms": "http://purl.org/dc/terms/",
@@ -24,7 +25,8 @@ const Map<String, String> nsmap = {
   "w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
   "w10": "urn:schemas-microsoft-com:office:word",
   "w14": "http://schemas.microsoft.com/office/word/2010/wordml",
-  "wp": "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
+  "wp":
+      "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
   "xml": "http://www.w3.org/XML/1998/namespace",
   "xsi": "http://www.w3.org/2001/XMLSchema-instance",
 };
@@ -56,7 +58,8 @@ class NamespacePrefixedTag {
       : nstag = tag, // Store original tag
         nspfx = _extractPrefix(tag),
         localPart = _extractLocalPart(tag),
-        nsuri = _lookupUri(_extractPrefix(tag)); // Recalculate prefix for lookup
+        nsuri =
+            _lookupUri(_extractPrefix(tag)); // Recalculate prefix for lookup
 
   /// Creates a [NamespacePrefixedTag] from a Clark notation string like "{uri}localPart".
   /// Throws [ArgumentError] if the format is incorrect or the URI is unknown.
@@ -97,9 +100,9 @@ class NamespacePrefixedTag {
 
   /// Helper to extract local part. MUST BE STATIC.
   static String _extractLocalPart(String nstag) {
-     final parts = nstag.split(':');
-     // Assume validation happened in _extractPrefix if called correctly
-     if (parts.length != 2) return ''; // Or handle error differently
+    final parts = nstag.split(':');
+    // Assume validation happened in _extractPrefix if called correctly
+    if (parts.length != 2) return ''; // Or handle error differently
     return parts[1];
   }
 
@@ -125,7 +128,6 @@ class NamespacePrefixedTag {
   @override
   int get hashCode => nstag.hashCode;
 }
-
 
 /// Returns a string containing namespace declarations (e.g., `xmlns:pfx="uri"`)
 /// for each prefix in the [prefixes] list.

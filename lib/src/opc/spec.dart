@@ -4,7 +4,7 @@
 /// Provides mappings that embody aspects of the Open XML spec ISO/IEC 29500,
 /// specifically the default content types associated with file extensions.
 
-import 'constants.dart'; 
+import 'constants.dart';
 
 /// Default content type mappings based on file extension.
 /// This list corresponds to the `default_content_types` tuple in python-docx.

@@ -107,6 +107,7 @@ class ImageParts {
       }
       return Image.fromBytes(bytes, filename: descriptor);
     }
-    throw ArgumentError('Unsupported image descriptor type ${descriptor.runtimeType}');
+    throw ArgumentError(
+        'Unsupported image descriptor type ${descriptor.runtimeType}');
   }
 }

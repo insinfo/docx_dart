@@ -17,4 +17,11 @@ class Settings extends ElementProxy {
   set oddAndEvenPagesHeaderFooter(bool value) {
     _settings.evenAndOddHeadersVal = value;
   }
+
+  /// True if Word should update fields such as TOC and page numbers on open.
+  bool get updateFieldsOnOpen => _settings.updateFieldsVal;
+
+  set updateFieldsOnOpen(bool value) {
+    _settings.updateFieldsVal = value;
+  }
 }

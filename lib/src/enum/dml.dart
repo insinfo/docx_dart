@@ -121,14 +121,16 @@ enum MSO_THEME_COLOR_INDEX {
   /// Throws ArgumentError if no member matches `xmlValue`.
   static MSO_THEME_COLOR_INDEX fromXml(String? xmlValue) {
     if (xmlValue == null) {
-       throw ArgumentError('MSO_THEME_COLOR_INDEX.fromXml() requires a non-null String argument');
+      throw ArgumentError(
+          'MSO_THEME_COLOR_INDEX.fromXml() requires a non-null String argument');
     }
     for (final member in values) {
       if (member.xmlValue == xmlValue) {
         return member;
       }
     }
-    throw ArgumentError('MSO_THEME_COLOR_INDEX has no XML mapping for "$xmlValue"');
+    throw ArgumentError(
+        'MSO_THEME_COLOR_INDEX has no XML mapping for "$xmlValue"');
   }
 
   /// Returns the XML value for the given enum member `value`.
@@ -136,8 +138,8 @@ enum MSO_THEME_COLOR_INDEX {
     return value?.xmlValue;
   }
 
-   @override
-   String toString() => '$name ($intValue)';
+  @override
+  String toString() => '$name ($intValue)';
 }
 
 /// Alias for [MSO_THEME_COLOR_INDEX].

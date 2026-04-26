@@ -38,12 +38,12 @@ void main() {
       expect(picture, isNotNull);
       final pic = picture!;
 
-        expect(pic.nvPicPr.cNvPr.id, equals(0));
-        expect(pic.nvPicPr.cNvPr.name, equals(filename));
-        expect(pic.blipFill.blip, isNotNull,
+      expect(pic.nvPicPr.cNvPr.id, equals(0));
+      expect(pic.nvPicPr.cNvPr.name, equals(filename));
+      expect(pic.blipFill.blip, isNotNull,
           reason: inline.element.toXmlString(pretty: true));
-          expect(pic.blipFill.blip!.embed, equals(rId),
-            reason: inline.element.toXmlString(pretty: true));
+      expect(pic.blipFill.blip!.embed, equals(rId),
+          reason: inline.element.toXmlString(pretty: true));
       expect(pic.spPr.cx, equals(cx));
       expect(pic.spPr.cy, equals(cy));
     });
@@ -52,11 +52,11 @@ void main() {
   group('StoryPart.newPicInline', () {
     test('scales requested dimensions using image metadata', () async {
       final document = docx.loadDocxDocument();
-        final pngPath = testFile('300-dpi.png');
+      final pngPath = testFile('300-dpi.png');
       final requestedWidth = Inches(1.25);
 
-      final inlineElement = document.part
-          .newPicInline(pngPath, width: requestedWidth);
+      final inlineElement =
+          document.part.newPicInline(pngPath, width: requestedWidth);
       final inline = CT_Inline(inlineElement);
 
       final image = await Image.fromPath(pngPath);

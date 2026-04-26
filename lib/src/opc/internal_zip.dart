@@ -27,7 +27,8 @@ class ZipArchive {
 
   ZipArchive();
 
-  List<ZipArchiveEntry> get entries => List<ZipArchiveEntry>.unmodifiable(_entries);
+  List<ZipArchiveEntry> get entries =>
+      List<ZipArchiveEntry>.unmodifiable(_entries);
 
   ZipArchiveEntry? findFile(String name) {
     final index = _entryIndex[name];
@@ -53,7 +54,8 @@ class ZipArchive {
 
     final eocdOffset = _findEndOfCentralDirectory(bytes);
     if (eocdOffset < 0) {
-      throw FormatException('Invalid ZIP archive: end of central directory not found.');
+      throw FormatException(
+          'Invalid ZIP archive: end of central directory not found.');
     }
 
     final entryCount = _readUint16(bytes, eocdOffset + 10);
@@ -62,10 +64,13 @@ class ZipArchive {
     final centralDirectoryEnd = centralDirectoryOffset + centralDirectorySize;
 
     var offset = centralDirectoryOffset;
-    for (var index = 0; index < entryCount && offset < centralDirectoryEnd; index++) {
+    for (var index = 0;
+        index < entryCount && offset < centralDirectoryEnd;
+        index++) {
       final signature = _readUint32(bytes, offset);
       if (signature != _zipCentralDirectorySignature) {
-        throw FormatException('Invalid ZIP archive: unexpected central directory header.');
+        throw FormatException(
+            'Invalid ZIP archive: unexpected central directory header.');
       }
 
       final flags = _readUint16(bytes, offset + 8);
@@ -91,15 +96,18 @@ class ZipArchive {
 
       final localSignature = _readUint32(bytes, localHeaderOffset);
       if (localSignature != _zipLocalFileHeaderSignature) {
-        throw FormatException('Invalid ZIP archive: local file header not found.');
+        throw FormatException(
+            'Invalid ZIP archive: local file header not found.');
       }
 
       final localFileNameLength = _readUint16(bytes, localHeaderOffset + 26);
       final localExtraFieldLength = _readUint16(bytes, localHeaderOffset + 28);
-      final dataStart = localHeaderOffset + 30 + localFileNameLength + localExtraFieldLength;
+      final dataStart =
+          localHeaderOffset + 30 + localFileNameLength + localExtraFieldLength;
       final dataEnd = dataStart + compressedSize;
       final compressedBytes = Uint8List.sublistView(bytes, dataStart, dataEnd);
-      final content = _decodeContent(compressedBytes, compressionMethod, uncompressedSize);
+      final content =
+          _decodeContent(compressedBytes, compressionMethod, uncompressedSize);
 
       archive.addFile(fileName, content);
       offset = nameEnd + extraFieldLength + commentLength;
@@ -119,7 +127,8 @@ class ZipArchive {
       final nameBytes = Uint8List.fromList(utf8.encode(entry.name));
       final compressedBytes = _compress(entry.content);
       final useCompression = compressedBytes.length < entry.content.length;
-      final method = useCompression ? _zipCompressionDeflate : _zipCompressionStored;
+      final method =
+          useCompression ? _zipCompressionDeflate : _zipCompressionStored;
       final payload = useCompression ? compressedBytes : entry.content;
       final crc32 = getCrc32(entry.content);
       final localHeaderOffset = output.length;
@@ -184,12 +193,14 @@ Uint8List _compress(Uint8List bytes) {
   return output.getBytes();
 }
 
-Uint8List _decodeContent(Uint8List compressedBytes, int method, int uncompressedSize) {
+Uint8List _decodeContent(
+    Uint8List compressedBytes, int method, int uncompressedSize) {
   if (method == _zipCompressionStored) {
     return Uint8List.fromList(compressedBytes);
   }
   if (method == _zipCompressionDeflate) {
-    return Inflate(compressedBytes, uncompressedSize: uncompressedSize).getBytes();
+    return Inflate(compressedBytes, uncompressedSize: uncompressedSize)
+        .getBytes();
   }
   throw UnsupportedError('ZIP compression method $method is not supported.');
 }
@@ -204,7 +215,8 @@ int _findEndOfCentralDirectory(Uint8List bytes) {
   return -1;
 }
 
-String _decodeName(Uint8List bytes, int start, int end, {required bool useUtf8}) {
+String _decodeName(Uint8List bytes, int start, int end,
+    {required bool useUtf8}) {
   final slice = Uint8List.sublistView(bytes, start, end);
   if (!useUtf8) {
     return latin1.decode(slice);

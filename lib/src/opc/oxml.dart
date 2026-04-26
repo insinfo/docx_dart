@@ -31,7 +31,8 @@ BaseOxmlElement parse_xml(Object source) {
 
 /// Serializes [element] (without pretty printing) into a UTF-8 encoded byte
 /// buffer suitable for storage inside a ZIP part stream.
-Uint8List serializePartXml(BaseOxmlElement element) => _serializeXmlElement(element.element);
+Uint8List serializePartXml(BaseOxmlElement element) =>
+    _serializeXmlElement(element.element);
 
 /// Serializes a bare [XmlElement] to UTF-8 with the XML declaration.
 Uint8List _serializeXmlElement(XmlElement element) {
@@ -116,18 +117,21 @@ class CT_Types extends BaseOxmlElement {
       .map((node) => CT_Override(node));
 
   void add_default(String ext, String contentType) {
-    element.children.add(CT_Default.newDefault(ext, contentType).element.copy());
+    element.children
+        .add(CT_Default.newDefault(ext, contentType).element.copy());
   }
 
   void add_override(String partname, String contentType) {
-    element.children.add(CT_Override.newOverride(partname, contentType).element.copy());
+    element.children
+        .add(CT_Override.newOverride(partname, contentType).element.copy());
   }
 }
 
 class CT_Relationship extends BaseOxmlElement {
   CT_Relationship(XmlElement element) : super(element);
 
-  factory CT_Relationship.newRelationship(String rId, String reltype, String target,
+  factory CT_Relationship.newRelationship(
+      String rId, String reltype, String target,
       {String targetMode = 'Internal'}) {
     final xml = '<Relationship xmlns="${nsmap['pr']}"/>';
     final element = XmlDocument.parse(xml).rootElement;
@@ -157,9 +161,11 @@ class CT_Relationships extends BaseOxmlElement {
     return CT_Relationships(XmlDocument.parse(xml).rootElement);
   }
 
-  void add_rel(String rId, String reltype, String target, {bool isExternal = false}) {
+  void add_rel(String rId, String reltype, String target,
+      {bool isExternal = false}) {
     final targetMode = isExternal ? 'External' : 'Internal';
-    final rel = CT_Relationship.newRelationship(rId, reltype, target, targetMode: targetMode);
+    final rel = CT_Relationship.newRelationship(rId, reltype, target,
+        targetMode: targetMode);
     element.children.add(rel.element.copy());
   }
 

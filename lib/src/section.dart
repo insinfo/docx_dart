@@ -82,6 +82,10 @@ class Section implements ProvidesStoryPart {
   Length? get pageWidth => _sectPr.page_width;
   set pageWidth(Length? value) => _sectPr.page_width = value;
 
+  /// First page number displayed for this section, or `null` to continue.
+  int? get pageNumberStart => _sectPr.pageNumberStart;
+  set pageNumberStart(int? value) => _sectPr.pageNumberStart = value;
+
   @override
   StoryPart get part => _documentPart;
 
@@ -103,9 +107,8 @@ class Sections extends IterableBase<Section> {
   Sections(this._documentElm, this._documentPart);
 
   @override
-  Iterator<Section> get iterator => _sectPrList
-      .map((sectPr) => Section(sectPr, _documentPart))
-      .iterator;
+  Iterator<Section> get iterator =>
+      _sectPrList.map((sectPr) => Section(sectPr, _documentPart)).iterator;
 
   Section operator [](int index) => Section(_sectPrList[index], _documentPart);
 
@@ -169,16 +172,16 @@ class _BaseHeaderFooter extends BlockItemContainer {
   @override
   StoryPart get part => _getOrAddDefinition();
 
-    StoryPart _addDefinition() =>
+  StoryPart _addDefinition() =>
       throw UnimplementedError('Must be implemented by subclass');
-    StoryPart get _definition =>
+  StoryPart get _definition =>
       throw UnimplementedError('Must be implemented by subclass');
   void _dropDefinition() =>
       throw UnimplementedError('Must be implemented by subclass');
   bool get _hasDefinition =>
       throw UnimplementedError('Must be implemented by subclass');
-  _BaseHeaderFooter? get _priorHeaderfooter => throw UnimplementedError(
-      'Must be implemented by subclass');
+  _BaseHeaderFooter? get _priorHeaderfooter =>
+      throw UnimplementedError('Must be implemented by subclass');
 
   StoryPart _getOrAddDefinition() {
     if (_hasDefinition) {
@@ -202,8 +205,8 @@ class _BaseHeaderFooter extends BlockItemContainer {
 }
 
 class _Footer extends _BaseHeaderFooter {
-  _Footer(CT_SectPr sectPr, DocumentPart documentPart,
-      WD_HEADER_FOOTER hdrftrIndex)
+  _Footer(
+      CT_SectPr sectPr, DocumentPart documentPart, WD_HEADER_FOOTER hdrftrIndex)
       : super(sectPr, documentPart, hdrftrIndex);
 
   @override
@@ -242,8 +245,8 @@ class _Footer extends _BaseHeaderFooter {
 }
 
 class _Header extends _BaseHeaderFooter {
-  _Header(CT_SectPr sectPr, DocumentPart documentPart,
-      WD_HEADER_FOOTER hdrftrIndex)
+  _Header(
+      CT_SectPr sectPr, DocumentPart documentPart, WD_HEADER_FOOTER hdrftrIndex)
       : super(sectPr, documentPart, hdrftrIndex);
 
   @override
@@ -286,11 +289,9 @@ class _Header extends _BaseHeaderFooter {
 @visibleForTesting
 class BaseHeaderFooterHarness extends _BaseHeaderFooter {
   BaseHeaderFooterHarness(
-    CT_SectPr sectPr,
-    DocumentPart documentPart,
-    WD_HEADER_FOOTER hdrftrIndex,
-    {bool hasDefinition = false}
-  )   : _hasDefinitionState = hasDefinition,
+      CT_SectPr sectPr, DocumentPart documentPart, WD_HEADER_FOOTER hdrftrIndex,
+      {bool hasDefinition = false})
+      : _hasDefinitionState = hasDefinition,
         _definitionPart = hasDefinition ? _HarnessHdrFtrPart() : null,
         super(sectPr, documentPart, hdrftrIndex);
 

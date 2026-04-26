@@ -97,10 +97,11 @@ class DocumentPart extends StoryPart implements ProvidesStoryPart {
   NumberingPart get numberingPart {
     if (_numberingPart == null) {
       try {
-        _numberingPart = partRelatedBy(RELATIONSHIP_TYPE.NUMBERING) as NumberingPart;
+        _numberingPart =
+            partRelatedBy(RELATIONSHIP_TYPE.NUMBERING) as NumberingPart;
       } catch (e) {
         // KeyError in python, likely StateError or similar here if not found
-        final numberingPart = NumberingPart.newPart();
+        final numberingPart = NumberingPart.newPart(_wordPackage);
         relateTo(numberingPart, RELATIONSHIP_TYPE.NUMBERING);
         _numberingPart = numberingPart;
       }
@@ -129,7 +130,8 @@ class DocumentPart extends StoryPart implements ProvidesStoryPart {
   SettingsPart get settingsPart {
     if (_settingsPart == null) {
       try {
-        _settingsPart = partRelatedBy(RELATIONSHIP_TYPE.SETTINGS) as SettingsPart;
+        _settingsPart =
+            partRelatedBy(RELATIONSHIP_TYPE.SETTINGS) as SettingsPart;
       } catch (e) {
         final settingsPart = SettingsPart.defaultPart(_wordPackage);
         relateTo(settingsPart, RELATIONSHIP_TYPE.SETTINGS);
@@ -161,7 +163,8 @@ class DocumentPart extends StoryPart implements ProvidesStoryPart {
   Package get _wordPackage {
     final currentPackage = package;
     if (currentPackage is! Package) {
-      throw StateError('DocumentPart requires a wordprocessing Package instance.');
+      throw StateError(
+          'DocumentPart requires a wordprocessing Package instance.');
     }
     return currentPackage;
   }

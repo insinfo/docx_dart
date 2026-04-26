@@ -44,6 +44,22 @@ class Run extends StoryChild implements ProvidesXmlPart {
     _r.addTab();
   }
 
+  /// Add a Word field to this run.
+  ///
+  /// For example, `addField('PAGE', cachedText: '1')` inserts a dynamic page
+  /// number field that Word updates when fields are refreshed.
+  void addField(String instruction, {String? cachedText, bool dirty = true}) {
+    if (instruction.trim().isEmpty) {
+      throw ArgumentError('instruction must not be empty');
+    }
+    _r.addField(instruction.trim(), cachedText: cachedText, dirty: dirty);
+  }
+
+  /// Add a dynamic page number field to this run.
+  void addPageNumber({String cachedText = '1'}) {
+    addField('PAGE', cachedText: cachedText);
+  }
+
   /// Append a text node to the run.
   void addText(String text) {
     _r.addT(text);
@@ -88,6 +104,5 @@ const Map<WD_BREAK, _BreakMapping> _breakTypeMap = {
   WD_BREAK.LINE_CLEAR_LEFT: _BreakMapping(type: 'textWrapping', clear: 'left'),
   WD_BREAK.LINE_CLEAR_RIGHT:
       _BreakMapping(type: 'textWrapping', clear: 'right'),
-  WD_BREAK.LINE_CLEAR_ALL:
-      _BreakMapping(type: 'textWrapping', clear: 'all'),
+  WD_BREAK.LINE_CLEAR_ALL: _BreakMapping(type: 'textWrapping', clear: 'all'),
 };

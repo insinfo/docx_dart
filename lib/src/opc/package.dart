@@ -63,7 +63,8 @@ class OpcPackage {
     yield* walk(this, <Part>{});
   }
 
-  Relationship loadRel(String reltype, Object target, String rId, {bool isExternal = false}) {
+  Relationship loadRel(String reltype, Object target, String rId,
+      {bool isExternal = false}) {
     return rels.addRelationship(reltype, target, rId, isExternal: isExternal);
   }
 
@@ -92,7 +93,8 @@ class OpcPackage {
 
   List<Part> get parts => List<Part>.unmodifiable(iterParts());
 
-  String relateTo(Part part, String reltype) => rels.getOrAdd(reltype, part).rId;
+  String relateTo(Part part, String reltype) =>
+      rels.getOrAdd(reltype, part).rId;
 
   Relationships get rels => _rels ??= Relationships(PACKAGE_URI.baseUri);
 
@@ -105,7 +107,8 @@ class OpcPackage {
 
   CorePropertiesPart get _corePropertiesPart {
     try {
-      return partRelatedBy(RELATIONSHIP_TYPE.CORE_PROPERTIES) as CorePropertiesPart;
+      return partRelatedBy(RELATIONSHIP_TYPE.CORE_PROPERTIES)
+          as CorePropertiesPart;
     } catch (_) {
       final corePropertiesPart = CorePropertiesPart.defaultPart(this);
       relateTo(corePropertiesPart, RELATIONSHIP_TYPE.CORE_PROPERTIES);
@@ -139,7 +142,8 @@ class Unmarshaller {
       final contentType = entry.$2;
       final reltype = entry.$3;
       final blob = entry.$4;
-      parts[partname.uri] = partFactory(partname, contentType, reltype, blob, package);
+      parts[partname.uri] =
+          partFactory(partname, contentType, reltype, blob, package);
     }
     return parts;
   }
@@ -152,14 +156,19 @@ class Unmarshaller {
     for (final entry in pkgReader.iterSrels()) {
       final sourceUri = entry.$1;
       final srel = entry.$2;
-      final source = sourceUri.uri == PACKAGE_URI.uri ? package : parts[sourceUri.uri]!;
-      final target = srel.isExternal ? srel.targetRef : parts[srel.targetPartname.uri]!;
+      final source =
+          sourceUri.uri == PACKAGE_URI.uri ? package : parts[sourceUri.uri]!;
+      final target =
+          srel.isExternal ? srel.targetRef : parts[srel.targetPartname.uri]!;
       if (source is OpcPackage) {
-        source.loadRel(srel.reltype, target, srel.rId, isExternal: srel.isExternal);
+        source.loadRel(srel.reltype, target, srel.rId,
+            isExternal: srel.isExternal);
       } else if (source is Part) {
-        source.loadRel(srel.reltype, target, srel.rId, isExternal: srel.isExternal);
+        source.loadRel(srel.reltype, target, srel.rId,
+            isExternal: srel.isExternal);
       } else {
-        throw StateError('Unsupported relationship source type: ${source.runtimeType}');
+        throw StateError(
+            'Unsupported relationship source type: ${source.runtimeType}');
       }
     }
   }

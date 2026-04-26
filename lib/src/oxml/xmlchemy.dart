@@ -62,7 +62,8 @@ class _QName {
     if (uri == null) {
       // Allow 'xml:' prefix even if not explicitly in nsmap
       if (prefix == 'xml') {
-        return _QName('http://www.w3.org/XML/1998/namespace', localName, prefix);
+        return _QName(
+            'http://www.w3.org/XML/1998/namespace', localName, prefix);
       }
       throw ArgumentError("Namespace prefix '$prefix' not found in nsmap");
     }

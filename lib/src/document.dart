@@ -53,7 +53,8 @@ class Document extends ElementProxy implements ProvidesStoryPart {
   /// appropriate XML form for a tab. [text] can also include newline (`\n`) or
   /// carriage return (`\r`) characters, each of which is converted to a line
   /// break.
-  Paragraph addParagraph({String text = "", dynamic style /* String | ParagraphStyle | None */}) {
+  Paragraph addParagraph(
+      {String text = "", dynamic style /* String | ParagraphStyle | None */}) {
     return _body.addParagraph(text: text, style: style);
   }
 
@@ -67,12 +68,42 @@ class Document extends ElementProxy implements ProvidesStoryPart {
   /// the dots-per-inch (dpi) value specified in the image file, defaulting to 72 dpi
   /// if no value is specified, as is often the case.
   InlineShape addPicture(
-    dynamic imagePathOrStream, { /* String | IO[bytes] */
+    dynamic imagePathOrStream, {
+    /* String | IO[bytes] */
     Length? width,
     Length? height,
   }) {
     final run = addParagraph().addRun();
     return run.addPicture(imagePathOrStream, width: width, height: height);
+  }
+
+  /// Add an automatic table-of-contents Word field.
+  ///
+  /// Word calculates the visible entries when fields are updated. The document
+  /// is marked to update fields on open so the TOC is populated by Word.
+  Paragraph addTableOfContents({
+    int minHeadingLevel = 1,
+    int maxHeadingLevel = 3,
+    bool hyperlinks = true,
+    bool hidePageNumbersInWebView = true,
+    bool useOutlineLevels = true,
+    Map<String, int> customStyleLevels = const {},
+    String? instruction,
+    String? cachedText,
+  }) {
+    final fieldInstruction = instruction ??
+        _tableOfContentsInstruction(
+          minHeadingLevel: minHeadingLevel,
+          maxHeadingLevel: maxHeadingLevel,
+          hyperlinks: hyperlinks,
+          hidePageNumbersInWebView: hidePageNumbersInWebView,
+          useOutlineLevels: useOutlineLevels,
+          customStyleLevels: customStyleLevels,
+        );
+    final paragraph = addParagraph();
+    paragraph.addRun().addField(fieldInstruction, cachedText: cachedText);
+    settings.updateFieldsOnOpen = true;
+    return paragraph;
   }
 
   /// Return a [Section] object newly added at the end of the document.
@@ -89,7 +120,8 @@ class Document extends ElementProxy implements ProvidesStoryPart {
   ///
   /// [style] may be a table style object or a table style name. If [style] is `null`,
   /// the table inherits the default table style of the document.
-  Table addTable(int rows, int cols, {dynamic style /* String | _TableStyle | None */}) {
+  Table addTable(int rows, int cols,
+      {dynamic style /* String | _TableStyle | None */}) {
     final table = _body.addTable(rows, cols, _blockWidth);
     table.style = style;
     return table;
@@ -106,7 +138,7 @@ class Document extends ElementProxy implements ProvidesStoryPart {
   InlineShapes get inlineShapes => _part.inlineShapes;
 
   /// Generate each `Paragraph` or `Table` in this document in document order.
-  Iterable<dynamic /* Paragraph | Table */> iterInnerContent() {
+  Iterable<dynamic /* Paragraph | Table */ > iterInnerContent() {
     return _body.iterInnerContent();
   }
 
@@ -167,6 +199,53 @@ class Document extends ElementProxy implements ProvidesStoryPart {
   Body get _body {
     __body ??= Body(_element.body, this);
     return __body!;
+  }
+
+  String _tableOfContentsInstruction({
+    required int minHeadingLevel,
+    required int maxHeadingLevel,
+    required bool hyperlinks,
+    required bool hidePageNumbersInWebView,
+    required bool useOutlineLevels,
+    required Map<String, int> customStyleLevels,
+  }) {
+    void validateLevel(int level, String name) {
+      if (level < 1 || level > 9) {
+        throw ArgumentError('$name must be in range 1-9, got $level');
+      }
+    }
+
+    validateLevel(minHeadingLevel, 'minHeadingLevel');
+    validateLevel(maxHeadingLevel, 'maxHeadingLevel');
+    if (minHeadingLevel > maxHeadingLevel) {
+      throw ArgumentError('minHeadingLevel must be <= maxHeadingLevel');
+    }
+
+    final switches = <String>[
+      '\\o "$minHeadingLevel-$maxHeadingLevel"',
+    ];
+    if (hyperlinks) {
+      switches.add('\\h');
+    }
+    if (hidePageNumbersInWebView) {
+      switches.add('\\z');
+    }
+    if (useOutlineLevels) {
+      switches.add('\\u');
+    }
+    if (customStyleLevels.isNotEmpty) {
+      final styleMappings = <String>[];
+      for (final entry in customStyleLevels.entries) {
+        final styleName = entry.key.trim();
+        if (styleName.isEmpty) {
+          throw ArgumentError('custom style names must not be empty');
+        }
+        validateLevel(entry.value, 'custom style level for $styleName');
+        styleMappings.add('$styleName,${entry.value}');
+      }
+      switches.add('\\t "${styleMappings.join(',')}"');
+    }
+    return 'TOC ${switches.join(' ')}';
   }
 }
 

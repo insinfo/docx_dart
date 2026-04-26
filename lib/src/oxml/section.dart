@@ -165,6 +165,29 @@ class CT_PageSz extends BaseOxmlElement {
           defaultValue: WD_ORIENTATION.PORTRAIT);
 }
 
+/// `<w:pgNumType>` element, defining page-numbering behavior for a section.
+class CT_PageNumberType extends BaseOxmlElement {
+  CT_PageNumberType(super.element);
+  static XmlElement create() => OxmlElement(qnTagName);
+  static final qnTagName = qn('w:pgNumType');
+
+  int? get start {
+    final rawValue = element.getAttribute('start', namespace: nsmap['w']);
+    return rawValue == null ? null : int.parse(rawValue);
+  }
+
+  set start(int? value) {
+    if (value == null) {
+      element.removeAttribute('start', namespace: nsmap['w']);
+      return;
+    }
+    if (value < 0) {
+      throw ArgumentError('page number start must be non-negative');
+    }
+    element.setAttribute('start', value.toString(), namespace: nsmap['w']);
+  }
+}
+
 /// `<w:sectType>` element, defining the section start type.
 class CT_SectType extends BaseOxmlElement {
   CT_SectType(super.element);
@@ -222,6 +245,8 @@ class CT_SectPr extends BaseOxmlElement {
       ZeroOrOne<CT_PageSz>(qn('w:pgSz'), successors: _tagSeq.sublist(4));
   static final _pgMar =
       ZeroOrOne<CT_PageMar>(qn('w:pgMar'), successors: _tagSeq.sublist(5));
+  static final _pgNumType = ZeroOrOne<CT_PageNumberType>(qn('w:pgNumType'),
+      successors: _tagSeq.sublist(9));
   static final _titlePg =
       ZeroOrOne<CT_OnOff>(qn('w:titlePg'), successors: _tagSeq.sublist(14));
 
@@ -231,20 +256,26 @@ class CT_SectPr extends BaseOxmlElement {
   CT_SectType? get type => _type.getElement(this, (el) => CT_SectType(el));
   CT_PageSz? get pgSz => _pgSz.getElement(this, (el) => CT_PageSz(el));
   CT_PageMar? get pgMar => _pgMar.getElement(this, (el) => CT_PageMar(el));
+  CT_PageNumberType? get pgNumType =>
+      _pgNumType.getElement(this, (el) => CT_PageNumberType(el));
   CT_OnOff? get titlePg => _titlePg.getElement(this, (el) => CT_OnOff(el));
 
   CT_PageMar getOrAddPgMar() =>
       _pgMar.getOrAdd(this, CT_PageMar.create, (el) => CT_PageMar(el));
   CT_PageSz getOrAddPgSz() =>
       _pgSz.getOrAdd(this, CT_PageSz.create, (el) => CT_PageSz(el));
+  CT_PageNumberType getOrAddPgNumType() => _pgNumType.getOrAdd(
+      this, CT_PageNumberType.create, (el) => CT_PageNumberType(el));
   CT_OnOff getOrAddTitlePg() => _titlePg.getOrAdd(
       this, () => CT_OnOff.create(qn('w:titlePg')), (el) => CT_OnOff(el));
   CT_SectType getOrAddType() =>
       _type.getOrAdd(this, CT_SectType.create, (el) => CT_SectType(el));
 
   void removeTitlePg() => _titlePg.remove(this);
+  void removePgNumType() => _pgNumType.remove(this);
   void removeType() => _type.remove(this);
   void remove_titlePg() => removeTitlePg();
+  void remove_pgNumType() => removePgNumType();
   void remove_type() => removeType();
 
   CT_HdrFtrRef addFooterReference(WD_HEADER_FOOTER type, String rId) {
@@ -358,6 +389,18 @@ class CT_SectPr extends BaseOxmlElement {
   Length? get page_width => pageWidth;
   set page_width(Length? value) => pageWidth = value;
 
+  int? get pageNumberStart => pgNumType?.start;
+  set pageNumberStart(int? value) {
+    if (value == null) {
+      removePgNumType();
+    } else {
+      getOrAddPgNumType().start = value;
+    }
+  }
+
+  int? get page_number_start => pageNumberStart;
+  set page_number_start(int? value) => pageNumberStart = value;
+
   WD_SECTION_START get startType => type?.val ?? WD_SECTION_START.NEW_PAGE;
   set startType(WD_SECTION_START? value) {
     if (value == null || value == WD_SECTION_START.NEW_PAGE) {
@@ -395,8 +438,8 @@ class CT_SectPr extends BaseOxmlElement {
       return null;
     }
     final extents = partition.extents;
-    final idx = extents.indexWhere(
-        (extent) => identical(extent.sectPr.element, element));
+    final idx = extents
+        .indexWhere((extent) => identical(extent.sectPr.element, element));
     if (idx <= 0) {
       return null;
     }
@@ -410,8 +453,8 @@ class CT_SectPr extends BaseOxmlElement {
     if (partition == null) {
       return;
     }
-    final extent = partition.extents.firstWhereOrNull(
-        (entry) => identical(entry.sectPr.element, element));
+    final extent = partition.extents
+        .firstWhereOrNull((entry) => identical(entry.sectPr.element, element));
     if (extent == null) {
       return;
     }
@@ -441,8 +484,8 @@ class CT_SectPr extends BaseOxmlElement {
     }
     final bodyClark = qn('w:body');
     return docElement.children
-      .whereType<XmlElement>()
-      .firstWhereOrNull((child) => _matchesClark(child, bodyClark));
+        .whereType<XmlElement>()
+        .firstWhereOrNull((child) => _matchesClark(child, bodyClark));
   }
 
   XmlElement? get _documentElement {
@@ -462,18 +505,14 @@ class CT_SectPr extends BaseOxmlElement {
       if (_matchesClark(child, CT_P.qnTagName)) {
         final blockIndex = blocks.length;
         blocks.add(CT_P(child));
-        final pPr = child
-            .children
+        final pPr = child.children
             .whereType<XmlElement>()
             .firstWhereOrNull((elm) => _matchesClark(elm, qn('w:pPr')));
-        final sectPrElm = pPr
-            ?.children
+        final sectPrElm = pPr?.children
             .whereType<XmlElement>()
-            .firstWhereOrNull(
-                (elm) => _matchesClark(elm, CT_SectPr.qnTagName));
+            .firstWhereOrNull((elm) => _matchesClark(elm, CT_SectPr.qnTagName));
         if (sectPrElm != null) {
-          boundaries.add(_SectionBoundary(
-              CT_SectPr(sectPrElm), blockIndex,
+          boundaries.add(_SectionBoundary(CT_SectPr(sectPrElm), blockIndex,
               includesTerminatingParagraph: true));
         }
       } else if (_matchesClark(child, CT_Tbl.qnTagName)) {

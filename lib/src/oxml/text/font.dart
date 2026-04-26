@@ -228,7 +228,7 @@ class CT_RPr extends BaseOxmlElement {
       CT_HpsMeasure(getOrAddChild(_wSz, _szSuccessors, _factorySz));
   CT_VerticalAlignRun getOrAddVertAlign() => CT_VerticalAlignRun(
       getOrAddChild(_wVertAlign, _vertAlignSuccessors, _factoryVertAlign));
-    CT_Color getOrAddColor() =>
+  CT_Color getOrAddColor() =>
       CT_Color(getOrAddChild(_wColor, _colorSuccessors, factoryColor));
   // CT_String getOrAddRStyle() => CT_String(
   //    getOrAddChild(_wRStyle, _rStyleSuccessors, _factoryRStyle)); // Renamed from addRStyle for consistency
@@ -258,7 +258,7 @@ class CT_RPr extends BaseOxmlElement {
       _wVertAlign,
       ST_VerticalAlignRunConverter.baseline); // Now calls class method
   static XmlElement factoryColor() {
-    return CT_Color.create(_wColor, '000000'); // Now calls class method
+    return CT_Color.create(_wColor, const RGBColor(0, 0, 0));
   }
 
   static XmlElement _factoryOnOff(String tag) =>

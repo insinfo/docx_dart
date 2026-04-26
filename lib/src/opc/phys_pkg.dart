@@ -40,30 +40,27 @@ abstract class PhysPkgReader {
 }
 
 abstract class PhysPkgWriter {
-   factory PhysPkgWriter(dynamic pkgFile) {
-     if (pkgFile is String) {
-        return _ZipPkgWriter(pkgFile);
-     }
+  factory PhysPkgWriter(dynamic pkgFile) {
+    if (pkgFile is String) {
+      return _ZipPkgWriter(pkgFile);
+    }
     if (pkgFile is BytesBuilder) {
       return _MemoryZipPkgWriter(pkgFile);
     }
     throw ArgumentError(
-     'PhysPkgWriter supports either a String path or a BytesBuilder sink.',
+      'PhysPkgWriter supports either a String path or a BytesBuilder sink.',
     );
-   }
+  }
 
-   void write(PackUri packUri, Uint8List blob);
-   void close();
+  void write(PackUri packUri, Uint8List blob);
+  void close();
 }
-
 
 class _ZipPkgReader implements PhysPkgReader {
   final ZipArchive _archive;
 
-
-   _ZipPkgReader.fromBytes(Uint8List bytes) :
-     _archive = ZipArchive.decodeBytes(bytes);
-
+  _ZipPkgReader.fromBytes(Uint8List bytes)
+      : _archive = ZipArchive.decodeBytes(bytes);
 
   @override
   Uint8List blobFor(PackUri packUri) {
@@ -85,9 +82,8 @@ class _ZipPkgReader implements PhysPkgReader {
   Uint8List get contentTypesXml => blobFor(CONTENT_TYPES_URI);
 
   @override
-    void close() {}
+  void close() {}
 }
-
 
 class _ZipPkgWriter implements PhysPkgWriter {
   final String _path;

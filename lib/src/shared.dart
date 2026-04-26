@@ -54,8 +54,8 @@ class Length implements Comparable<Length> {
   @override
   int compareTo(Length other) => emu.compareTo(other.emu);
 
-    @override
-    bool operator ==(Object other) =>
+  @override
+  bool operator ==(Object other) =>
       identical(this, other) || (other is Length && emu == other.emu);
 
   bool operator <(Length other) => emu < other.emu;
@@ -275,7 +275,8 @@ class TextAccumulator {
 
   /// Returns the accumulated text joined by the separator and clears the buffer.
   /// Returns `null` if no text has been accumulated.
-  List<String> pop() { // Changed return type to List<String>
+  List<String> pop() {
+    // Changed return type to List<String>
     if (_texts.isEmpty) {
       return []; // Return empty list instead of null
     }

@@ -96,6 +96,19 @@ class CT_R extends BaseOxmlElement {
     return CT_Drawing(drawingElement);
   }
 
+  /// Add a Word field to this run using complex field markup.
+  void addField(String instruction, {String? cachedText, bool dirty = true}) {
+    element.children.add(CT_FldChar.create('begin', dirty: dirty));
+    element.children.add(CT_InstrText.create(' $instruction '));
+    if (cachedText != null) {
+      element.children.add(CT_FldChar.create('separate'));
+      if (cachedText.isNotEmpty) {
+        element.children.add(CT_Text.create(text: cachedText));
+      }
+    }
+    element.children.add(CT_FldChar.create('end'));
+  }
+
   /// Add a new `<w:t>` child element with [text] (internal use).
   CT_Text _addT(String text) {
     final tElement = CT_Text.create(text: text);
@@ -352,6 +365,42 @@ class CT_PTab extends BaseOxmlElement {
   static final qnTagName = qn('w:ptab');
 }
 
+/// `<w:fldChar>` element, used to delimit a complex Word field.
+class CT_FldChar extends BaseOxmlElement {
+  CT_FldChar(super.element);
+
+  static XmlElement create(String fldCharType, {bool dirty = false}) {
+    final attrs = <String, String>{
+      'w:fldCharType': fldCharType,
+    };
+    if (dirty) {
+      attrs['w:dirty'] = 'true';
+    }
+    return OxmlElement(qnTagName, attrs: attrs);
+  }
+
+  static final qnTagName = qn('w:fldChar');
+}
+
+/// `<w:instrText>` element, containing the instruction text for a Word field.
+class CT_InstrText extends BaseOxmlElement {
+  CT_InstrText(super.element);
+
+  String get textValue => element.innerText;
+
+  static XmlElement create(String text) {
+    final instrTextElement = OxmlElement(qnTagName);
+    instrTextElement.children.add(XmlText(text));
+    instrTextElement.setAttribute('space', 'preserve', namespace: nsmap['xml']);
+    return instrTextElement;
+  }
+
+  @override
+  String toString() => textValue;
+
+  static final qnTagName = qn('w:instrText');
+}
+
 // Note: CT_Tab (<w:tab/>) functionality for text runs is handled by CT_TabStop's toString()
 // from the parfmt module, as it uses the same tag. Its qnTagName is defined there.
 
@@ -370,12 +419,12 @@ class CT_Text extends BaseOxmlElement {
       element.children.add(XmlText(value));
       // Preserve whitespace if necessary
       if (value.trim().length < value.length) {
-        element.setAttribute(qn('xml:space'), 'preserve');
+        element.setAttribute('space', 'preserve', namespace: nsmap['xml']);
       } else {
-        element.removeAttribute(qn('xml:space')); // Remove if not needed
+        element.removeAttribute('space', namespace: nsmap['xml']);
       }
     } else {
-      element.removeAttribute(qn('xml:space')); // Remove if text is empty
+      element.removeAttribute('space', namespace: nsmap['xml']);
     }
   }
 
@@ -386,7 +435,7 @@ class CT_Text extends BaseOxmlElement {
     if (text.isNotEmpty) {
       tElement.children.add(XmlText(text));
       if (text.trim().length < text.length) {
-        tElement.setAttribute(qn('xml:space'), 'preserve');
+        tElement.setAttribute('space', 'preserve', namespace: nsmap['xml']);
       }
     }
     return tElement;

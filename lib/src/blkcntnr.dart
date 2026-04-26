@@ -19,8 +19,8 @@ import 'oxml/document.dart' show CT_Body;
 import 'oxml/section.dart' show CT_HdrFtr;
 import 'oxml/table.dart' show CT_Tbl, CT_Tc;
 import 'oxml/text/paragraph.dart' show CT_P;
-import 'oxml/xmlchemy.dart' show BaseOxmlElement; // For casting _element if needed
-
+import 'oxml/xmlchemy.dart'
+    show BaseOxmlElement; // For casting _element if needed
 
 import 'text/paragraph.dart' show Paragraph;
 import 'styles/style.dart' show ParagraphStyle;
@@ -49,7 +49,7 @@ class BlockItemContainer extends StoryChild {
   BlockItemContainer.lazy(
     BlockItemElement Function() elementProvider,
     ProvidesStoryPart parent,
-  )   : super(parent) {
+  ) : super(parent) {
     _elementProvider = elementProvider;
   }
 
@@ -88,30 +88,31 @@ class BlockItemContainer extends StoryChild {
 
     // --- CORRECTION: Use UnsupportedError for type mismatch ---
     if (_element is CT_Body || _element is CT_Tc || _element is CT_HdrFtr) {
-       try {
-          // Attempt dynamic call (assumes method like insertTbl exists on CT_* class)
-          (_element as dynamic).insertTbl(ctTbl);
-       } catch (e, s) {
-         print("Error inserting table into ${_element.runtimeType}: $e\n$s");
-         throw UnsupportedError(
-           "Container type ${_element.runtimeType} does not support table insertion via 'insertTbl' or similar method."
-         );
-       }
+      try {
+        // Attempt dynamic call (assumes method like insertTbl exists on CT_* class)
+        (_element as dynamic).insertTbl(ctTbl);
+      } catch (e, s) {
+        print("Error inserting table into ${_element.runtimeType}: $e\n$s");
+        throw UnsupportedError(
+            "Container type ${_element.runtimeType} does not support table insertion via 'insertTbl' or similar method.");
+      }
     } else {
-      throw UnsupportedError( // Use UnsupportedError for type issue
+      throw UnsupportedError(// Use UnsupportedError for type issue
           "Cannot add table to unsupported container type: ${_element.runtimeType}");
     }
     // --- End Correction ---
 
-    return Table(ctTbl, this); // Wrap CT_Tbl in API Table, passing this container as parent
+    return Table(ctTbl,
+        this); // Wrap CT_Tbl in API Table, passing this container as parent
   }
 
   /// Generate each `Paragraph` or `Table` object within this container, in document order.
   Iterable<dynamic /* Paragraph | Table */ > iterInnerContent() sync* {
-     // --- CORRECTION: Use UnsupportedError ---
+    // --- CORRECTION: Use UnsupportedError ---
     if (_element is BaseOxmlElement) {
       // Assumes `innerContentElements` exists and returns List<BaseOxmlElement>
-      final List<BaseOxmlElement> contentElements = (_element as dynamic).innerContentElements;
+      final List<BaseOxmlElement> contentElements =
+          (_element as dynamic).innerContentElements;
       for (final element in contentElements) {
         if (element is CT_P) {
           yield Paragraph(element, this); // Pass this container as parent
@@ -120,55 +121,59 @@ class BlockItemContainer extends StoryChild {
         }
       }
     } else {
-       throw UnsupportedError( // Use UnsupportedError
+      throw UnsupportedError(// Use UnsupportedError
           "Cannot iterate inner content on unsupported container type: ${_element.runtimeType}");
     }
-     // --- End Correction ---
+    // --- End Correction ---
   }
 
   /// Read-only list containing the paragraphs in this container, in document order.
   List<Paragraph> get paragraphs {
     // --- CORRECTION: Use UnsupportedError ---
-     if (_element is BaseOxmlElement) {
-        // Assumes `pList` getter exists and returns List<CT_P>
-        final List<CT_P> pElements = (_element as dynamic).pList;
-        return pElements.map((p) => Paragraph(p, this)).toList(); // Pass this container as parent
-     } else {
-        throw UnsupportedError( // Use UnsupportedError
+    if (_element is BaseOxmlElement) {
+      // Assumes `pList` getter exists and returns List<CT_P>
+      final List<CT_P> pElements = (_element as dynamic).pList;
+      return pElements
+          .map((p) => Paragraph(p, this))
+          .toList(); // Pass this container as parent
+    } else {
+      throw UnsupportedError(// Use UnsupportedError
           "Cannot get paragraphs from unsupported container type: ${_element.runtimeType}");
-     }
-     // --- End Correction ---
+    }
+    // --- End Correction ---
   }
 
   /// Read-only list containing the tables in this container, in document order.
   List<Table> get tables {
     // --- CORRECTION: Use UnsupportedError ---
-     if (_element is BaseOxmlElement) {
-        // Assumes `tblList` getter exists and returns List<CT_Tbl>
-        final List<CT_Tbl> tblElements = (_element as dynamic).tblList;
-        return tblElements.map((tbl) => Table(tbl, this)).toList(); // Pass this container as parent
-     } else {
-       throw UnsupportedError( // Use UnsupportedError
+    if (_element is BaseOxmlElement) {
+      // Assumes `tblList` getter exists and returns List<CT_Tbl>
+      final List<CT_Tbl> tblElements = (_element as dynamic).tblList;
+      return tblElements
+          .map((tbl) => Table(tbl, this))
+          .toList(); // Pass this container as parent
+    } else {
+      throw UnsupportedError(// Use UnsupportedError
           "Cannot get tables from unsupported container type: ${_element.runtimeType}");
-     }
-     // --- End Correction ---
+    }
+    // --- End Correction ---
   }
 
   /// Internal helper to add a new `<w:p>` element to the container and wrap it.
   Paragraph _addParagraph() {
-     // --- CORRECTION: Use UnsupportedError ---
-     if (_element is BaseOxmlElement) {
-        // Assumes `addP()` method exists and returns CT_P
-        final CT_P newP = (_element as dynamic).addP();
-        return Paragraph(newP, this); // Wrap CT_P in API Paragraph, pass this container as parent
-     } else {
-         throw UnsupportedError( // Use UnsupportedError
+    // --- CORRECTION: Use UnsupportedError ---
+    if (_element is BaseOxmlElement) {
+      // Assumes `addP()` method exists and returns CT_P
+      final CT_P newP = (_element as dynamic).addP();
+      return Paragraph(newP,
+          this); // Wrap CT_P in API Paragraph, pass this container as parent
+    } else {
+      throw UnsupportedError(// Use UnsupportedError
           "Cannot add paragraph to unsupported container type: ${_element.runtimeType}");
-     }
-     // --- End Correction ---
+    }
+    // --- End Correction ---
   }
 }
-
 
 // --- Placeholder definitions (should be properly defined elsewhere) ---
 

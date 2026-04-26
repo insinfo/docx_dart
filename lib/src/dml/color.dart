@@ -83,6 +83,7 @@ class ColorFormat extends ElementProxy {
     if (base is CT_R) {
       return base;
     }
-    throw StateError('ColorFormat requires a CT_R parent but got ${base.runtimeType}');
+    throw StateError(
+        'ColorFormat requires a CT_R parent but got ${base.runtimeType}');
   }
 }

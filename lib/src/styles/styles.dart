@@ -54,8 +54,8 @@ class Styles extends ElementProxy with IterableMixin<BaseStyle> {
       return StyleFactory.create(BaseOxmlElement(byName), this);
     }
 
-    final byId = _styleElements
-        .firstWhereOrNull((el) => _styleId(el)?.toLowerCase() == key.toLowerCase());
+    final byId = _styleElements.firstWhereOrNull(
+        (el) => _styleId(el)?.toLowerCase() == key.toLowerCase());
     if (byId != null) {
       return StyleFactory.create(BaseOxmlElement(byId), this);
     }
@@ -74,8 +74,7 @@ class Styles extends ElementProxy with IterableMixin<BaseStyle> {
       [
         XmlAttribute(XmlName('type', 'w'), type.xmlValue),
         XmlAttribute(XmlName('styleId', 'w'), styleId),
-        if (!builtin)
-          XmlAttribute(XmlName('customStyle', 'w'), '1'),
+        if (!builtin) XmlAttribute(XmlName('customStyle', 'w'), '1'),
       ],
       [
         XmlElement(

@@ -44,11 +44,13 @@ class Part {
     }
   }
 
-  static Part load(PackUri partname, String contentType, Uint8List blob, OpcPackage package) {
+  static Part load(PackUri partname, String contentType, Uint8List blob,
+      OpcPackage package) {
     return Part(partname, contentType, blob, package);
   }
 
-  Relationship loadRel(String reltype, Object target, String rId, {bool isExternal = false}) {
+  Relationship loadRel(String reltype, Object target, String rId,
+      {bool isExternal = false}) {
     return rels.addRelationship(reltype, target, rId, isExternal: isExternal);
   }
 
@@ -63,7 +65,8 @@ class Part {
   String relateTo(Object target, String reltype, {bool isExternal = false}) {
     if (isExternal) {
       if (target is! String) {
-        throw ArgumentError('External relationships require a String target reference.');
+        throw ArgumentError(
+            'External relationships require a String target reference.');
       }
       return rels.getOrAddExternalRel(reltype, target);
     }
@@ -109,7 +112,8 @@ class PartFactory {
 class XmlPart extends Part {
   final BaseOxmlElement _element;
 
-  XmlPart(PackUri partname, String contentType, this._element, OpcPackage package)
+  XmlPart(
+      PackUri partname, String contentType, this._element, OpcPackage package)
       : super(partname, contentType, null, package);
 
   @override
@@ -117,7 +121,8 @@ class XmlPart extends Part {
 
   BaseOxmlElement get element => _element;
 
-  static XmlPart load(PackUri partname, String contentType, Uint8List blob, OpcPackage package) {
+  static XmlPart load(PackUri partname, String contentType, Uint8List blob,
+      OpcPackage package) {
     final element = parse_xml(blob);
     return XmlPart(partname, contentType, element, package);
   }
@@ -129,7 +134,8 @@ class XmlPart extends Part {
       return 0;
     }
     int count = 0;
-    final Iterable<XmlElement> descendants = _element.element.descendants.whereType<XmlElement>();
+    final Iterable<XmlElement> descendants =
+        _element.element.descendants.whereType<XmlElement>();
     for (final descendant in descendants) {
       final attr = descendant.getAttribute('id', namespace: namespace);
       if (attr != null && attr == rId) {

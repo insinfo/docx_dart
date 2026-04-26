@@ -4,34 +4,34 @@ import 'package:docx_dart/src/opc/oxml.dart'; // Para CT_Relationships
 import 'package:docx_dart/src/opc/part.dart';
 
 class Relationship {
- final String _rId;
- final String _reltype;
- final Object _target; // Pode ser Part ou String (URL)
- final String _baseUri;
- final bool _isExternal;
+  final String _rId;
+  final String _reltype;
+  final Object _target; // Pode ser Part ou String (URL)
+  final String _baseUri;
+  final bool _isExternal;
 
- Relationship(this._rId, this._reltype, this._target, this._baseUri, [this._isExternal = false]);
+  Relationship(this._rId, this._reltype, this._target, this._baseUri,
+      [this._isExternal = false]);
 
- bool get isExternal => _isExternal;
- String get reltype => _reltype;
- String get rId => _rId;
+  bool get isExternal => _isExternal;
+  String get reltype => _reltype;
+  String get rId => _rId;
 
- Part get targetPart {
+  Part get targetPart {
     if (_isExternal) {
       throw StateError("target_part is undefined when target mode is External");
     }
     return _target as Part;
- }
+  }
 
- String get targetRef {
+  String get targetRef {
     if (_isExternal) {
       return _target as String;
     } else {
       return (_target as Part).partname.relativeRef(_baseUri);
     }
- }
+  }
 }
-
 
 class Relationships extends MapBase<String, Relationship> {
   final String _baseUri;
@@ -55,81 +55,85 @@ class Relationships extends MapBase<String, Relationship> {
   @override
   Relationship? remove(Object? key) => _rels.remove(key);
 
-  Relationship addRelationship(String reltype, Object target, String rId, {bool isExternal = false}) {
-     final rel = Relationship(rId, reltype, target, _baseUri, isExternal);
-     this[rId] = rel;
-     return rel;
+  Relationship addRelationship(String reltype, Object target, String rId,
+      {bool isExternal = false}) {
+    final rel = Relationship(rId, reltype, target, _baseUri, isExternal);
+    this[rId] = rel;
+    return rel;
   }
 
   Relationship getOrAdd(String reltype, Part targetPart) {
-     final existing = _getMatching(reltype, targetPart, isExternal: false);
-     if (existing != null) return existing;
-     final rId = _nextRId;
-     return addRelationship(reltype, targetPart, rId, isExternal: false);
+    final existing = _getMatching(reltype, targetPart, isExternal: false);
+    if (existing != null) return existing;
+    final rId = _nextRId;
+    return addRelationship(reltype, targetPart, rId, isExternal: false);
   }
 
-   String getOrAddExternalRel(String reltype, String targetRef) {
-      final existing = _getMatching(reltype, targetRef, isExternal: true);
-      if (existing != null) return existing.rId;
-      final rId = _nextRId;
-      return addRelationship(reltype, targetRef, rId, isExternal: true).rId;
-   }
+  String getOrAddExternalRel(String reltype, String targetRef) {
+    final existing = _getMatching(reltype, targetRef, isExternal: true);
+    if (existing != null) return existing.rId;
+    final rId = _nextRId;
+    return addRelationship(reltype, targetRef, rId, isExternal: true).rId;
+  }
 
-   Part partWithReltype(String reltype) {
-     final rel = _getRelOfType(reltype);
-     return rel.targetPart;
-   }
+  Part partWithReltype(String reltype) {
+    final rel = _getRelOfType(reltype);
+    return rel.targetPart;
+  }
 
-   /// Retorna partes relacionadas internas.
-   Map<String, Part> get relatedParts {
-      final parts = <String, Part>{};
-      for (final rel in values) {
-         if (!rel.isExternal) {
-            parts[rel.rId] = rel.targetPart;
-         }
+  /// Retorna partes relacionadas internas.
+  Map<String, Part> get relatedParts {
+    final parts = <String, Part>{};
+    for (final rel in values) {
+      if (!rel.isExternal) {
+        parts[rel.rId] = rel.targetPart;
       }
-      return parts;
-   }
+    }
+    return parts;
+  }
 
-   String get xml {
-     final relsElm = CT_Relationships.newRelationships();
-     for (final rel in values) {
-        relsElm.add_rel(rel.rId, rel.reltype, rel.targetRef, isExternal: rel.isExternal);
-     }
-     return relsElm.xml;
-   }
+  String get xml {
+    final relsElm = CT_Relationships.newRelationships();
+    for (final rel in values) {
+      relsElm.add_rel(rel.rId, rel.reltype, rel.targetRef,
+          isExternal: rel.isExternal);
+    }
+    return relsElm.xml;
+  }
 
-  Relationship? _getMatching(String reltype, Object target, {bool isExternal = false}) {
-     for (final rel in values) {
-        if (rel.reltype == reltype && rel.isExternal == isExternal) {
-           final relTarget = rel.isExternal ? rel.targetRef : rel.targetPart;
-           if (relTarget == target) {
-              return rel;
-           }
+  Relationship? _getMatching(String reltype, Object target,
+      {bool isExternal = false}) {
+    for (final rel in values) {
+      if (rel.reltype == reltype && rel.isExternal == isExternal) {
+        final relTarget = rel.isExternal ? rel.targetRef : rel.targetPart;
+        if (relTarget == target) {
+          return rel;
         }
-     }
-     return null;
+      }
+    }
+    return null;
   }
 
-   Relationship _getRelOfType(String reltype) {
-      final matching = values.where((rel) => rel.reltype == reltype).toList();
-      if (matching.isEmpty) {
-        throw ArgumentError("no relationship of type '$reltype' in collection");
-      }
-      if (matching.length > 1) {
-         throw StateError("multiple relationships of type '$reltype' in collection");
-      }
-      return matching.first;
-   }
+  Relationship _getRelOfType(String reltype) {
+    final matching = values.where((rel) => rel.reltype == reltype).toList();
+    if (matching.isEmpty) {
+      throw ArgumentError("no relationship of type '$reltype' in collection");
+    }
+    if (matching.length > 1) {
+      throw StateError(
+          "multiple relationships of type '$reltype' in collection");
+    }
+    return matching.first;
+  }
 
-   String get _nextRId {
-      int n = 1;
-      while (true) {
-         final rIdCandidate = 'rId$n';
-         if (!containsKey(rIdCandidate)) {
-            return rIdCandidate;
-         }
-         n++;
+  String get _nextRId {
+    int n = 1;
+    while (true) {
+      final rIdCandidate = 'rId$n';
+      if (!containsKey(rIdCandidate)) {
+        return rIdCandidate;
       }
-   }
+      n++;
+    }
+  }
 }

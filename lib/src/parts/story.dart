@@ -8,14 +8,15 @@ import 'package:xml/xml.dart'; // XML package
 // Assuming these files exist and contain the necessary translated classes/enums
 import '../opc/part.dart';
 import '../opc/constants.dart' show RELATIONSHIP_TYPE;
-import 'package:docx_dart/src/shared.dart';// Expects Length, Image
+import 'package:docx_dart/src/shared.dart'; // Expects Length, Image
 import '../image/image.dart'; // For Image class definition
 import '../package.dart'; // Expects Package class
 import 'document.dart'; // Expects DocumentPart class
 import '../styles/style.dart'; // Expects BaseStyle
-import 'package:docx_dart/src/enum/style.dart';// Expects WD_STYLE_TYPE
+import 'package:docx_dart/src/enum/style.dart'; // Expects WD_STYLE_TYPE
 import '../oxml/oxml_constructors.dart'; // Expects helper for creating inline XML
-import '../oxml/ns.dart' show nsmap; // For namespace constants like ns['wp'], ns['r'] etc.
+import '../oxml/ns.dart'
+    show nsmap; // For namespace constants like ns['wp'], ns['r'] etc.
 
 /// Base class for story parts like DocumentPart, HeaderPart, FooterPart.
 ///
@@ -34,13 +35,16 @@ class StoryPart extends XmlPart {
   /// Creates the image part and relationship if they don't already exist.
   ///
   /// [imageDescriptor] can be a file path (String) or a Stream<List<int>>/Uint8List.
-  (String, Image) getOrAddImage(dynamic imageDescriptor /* String | Stream<List<int>> | Uint8List */) {
+  (String, Image) getOrAddImage(
+      dynamic imageDescriptor /* String | Stream<List<int>> | Uint8List */) {
     final currentPackage = package; // Access package safely
     if (currentPackage == null) {
-      throw StateError('Cannot add image part: StoryPart is not associated with a package.');
+      throw StateError(
+          'Cannot add image part: StoryPart is not associated with a package.');
     }
     if (currentPackage is! Package) {
-      throw StateError('StoryPart package is not a Wordprocessing Package instance.');
+      throw StateError(
+          'StoryPart package is not a Wordprocessing Package instance.');
     }
     final imagePart = currentPackage.getOrAddImagePart(imageDescriptor);
     final rId = relateTo(imagePart, RELATIONSHIP_TYPE.IMAGE);
@@ -64,7 +68,8 @@ class StoryPart extends XmlPart {
   /// in the document.
   ///
   /// [styleOrName] can be a style name (String) or a [BaseStyle] object.
-  String? getStyleId(dynamic styleOrName /* String? | BaseStyle? */, WD_STYLE_TYPE styleType) {
+  String? getStyleId(
+      dynamic styleOrName /* String? | BaseStyle? */, WD_STYLE_TYPE styleType) {
     return _documentPartLazy.getStyleId(styleOrName, styleType);
   }
 
@@ -75,7 +80,8 @@ class StoryPart extends XmlPart {
   ///
   /// [imageDescriptor] can be a file path (String) or a Stream<List<int>>/Uint8List.
   XmlElement newPicInline(
-    dynamic imageDescriptor, { /* String | Stream<List<int>> | Uint8List */
+    dynamic imageDescriptor, {
+    /* String | Stream<List<int>> | Uint8List */
     Length? width,
     Length? height,
   }) {
@@ -105,7 +111,8 @@ class StoryPart extends XmlPart {
     // Efficiently find potential ID attributes
     final potentialIdAttributes = ['id', 'r:id', 'wp:id', 'pic:id'];
 
-    for (final descendant in element.element.descendants.whereType<XmlElement>()) {
+    for (final descendant
+        in element.element.descendants.whereType<XmlElement>()) {
       for (final attrName in potentialIdAttributes) {
         String? idStr;
         if (attrName.contains(':')) {
@@ -139,11 +146,13 @@ class StoryPart extends XmlPart {
     if (_documentPart == null) {
       final currentPackage = package;
       if (currentPackage == null) {
-        throw StateError('Cannot access document part: StoryPart is not associated with a package.');
+        throw StateError(
+            'Cannot access document part: StoryPart is not associated with a package.');
       }
       final mainPart = currentPackage.mainDocumentPart;
       if (mainPart is! DocumentPart) {
-         throw StateError('Package main document part is not a DocumentPart or is null.');
+        throw StateError(
+            'Package main document part is not a DocumentPart or is null.');
       }
       _documentPart = mainPart;
     }

@@ -1,5 +1,3 @@
-
-
 import 'package:docx_dart/docx_dart.dart';
 import 'package:docx_dart/src/enum/section.dart';
 import 'package:docx_dart/src/oxml/section.dart';
@@ -94,6 +92,46 @@ void main() {
 
       section.orientation = null;
       expect(section.orientation, WD_ORIENTATION.PORTRAIT);
+    });
+
+    test('Section pageNumberStart writes pgNumType start', () {
+      final document = loadDocxDocument();
+      final section = document.sections.last;
+
+      expect(section.pageNumberStart, isNull);
+
+      section.pageNumberStart = 1;
+      expect(section.pageNumberStart, 1);
+
+      final pgNumType =
+          XmlDocument.parse(document.element.element.toXmlString())
+              .rootElement
+              .descendants
+              .whereType<XmlElement>()
+              .where((element) =>
+                  element.name.local == 'pgNumType' &&
+                  element.name.namespaceUri == _wNamespace)
+              .single;
+      expect(pgNumType.getAttribute('start', namespace: _wNamespace), '1');
+
+      section.pageNumberStart = null;
+      expect(section.pageNumberStart, isNull);
+      final resetXml =
+          XmlDocument.parse(document.element.element.toXmlString());
+      expect(
+        resetXml.rootElement.descendants.whereType<XmlElement>().where(
+            (element) =>
+                element.name.local == 'pgNumType' &&
+                element.name.namespaceUri == _wNamespace),
+        isEmpty,
+      );
+    });
+
+    test('Section pageNumberStart rejects negative values', () {
+      final document = loadDocxDocument();
+      final section = document.sections.last;
+
+      expect(() => section.pageNumberStart = -1, throwsArgumentError);
     });
 
     test('Document.sections reflects added sections when iterated', () {
@@ -393,23 +431,19 @@ void main() {
           WD_SECTION.NEW_PAGE,
         ),
         (
-          _sectPrFromInner(
-              '<w:type w:val="continuous" />'),
+          _sectPrFromInner('<w:type w:val="continuous" />'),
           WD_SECTION.CONTINUOUS,
         ),
         (
-          _sectPrFromInner(
-              '<w:type w:val="oddPage" />'),
+          _sectPrFromInner('<w:type w:val="oddPage" />'),
           WD_SECTION.ODD_PAGE,
         ),
         (
-          _sectPrFromInner(
-              '<w:type w:val="evenPage" />'),
+          _sectPrFromInner('<w:type w:val="evenPage" />'),
           WD_SECTION.EVEN_PAGE,
         ),
         (
-          _sectPrFromInner(
-              '<w:type w:val="nextColumn" />'),
+          _sectPrFromInner('<w:type w:val="nextColumn" />'),
           WD_SECTION.NEW_COLUMN,
         ),
       ];
@@ -424,21 +458,25 @@ void main() {
         (_sectPrFromInner(''), WD_SECTION.EVEN_PAGE, 'evenPage'),
         (_sectPrFromInner('<w:type />'), WD_SECTION.NEW_COLUMN, 'nextColumn'),
         (_sectPrFromInner('<w:type w:val="oddPage"/>'), null, null),
-        (_sectPrFromInner('<w:type w:val="evenPage"/>'), WD_SECTION.NEW_PAGE,
-            null),
+        (
+          _sectPrFromInner('<w:type w:val="evenPage"/>'),
+          WD_SECTION.NEW_PAGE,
+          null
+        ),
       ];
 
       for (final (sectPr, value, expectedVal) in cases) {
         sectPr.start_type = value;
         final xml = XmlDocument.parse(_serializeSectPr(sectPr));
         final typeNodes = xml.rootElement
-          .findElements('type', namespace: _wNamespace)
+            .findElements('type', namespace: _wNamespace)
             .toList();
         if (expectedVal == null) {
           expect(typeNodes, isEmpty);
         } else {
           expect(typeNodes, hasLength(1));
-          final attr = typeNodes.first.getAttribute('val', namespace: _wNamespace);
+          final attr =
+              typeNodes.first.getAttribute('val', namespace: _wNamespace);
           expect(attr, expectedVal);
         }
       }
@@ -459,7 +497,8 @@ List<String> _paragraphTexts(dynamic container) {
   return paragraphs.map((p) => p.text).toList(growable: false);
 }
 
-const _wNamespace = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+const _wNamespace =
+    'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
 
 CT_SectPr _sectPrFromInner(String innerXml) {
   final xml = '<w:sectPr xmlns:w="$_wNamespace">$innerXml</w:sectPr>';
