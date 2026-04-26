@@ -257,6 +257,12 @@ dart test -p chrome test/browser_document_test.dart
 
 The GitHub Actions workflow validates the package on Ubuntu 24.04 with Dart 3.6.2. It installs dependencies, runs static analysis, executes VM tests, and runs the browser document test in Chrome.
 
+## Acknowledgements
+
+`docx_dart` is a Dart port of [`python-docx`](https://github.com/python-openxml/python-docx). The original project is licensed under the MIT License and is copyright (c) 2013 Steve Canny.
+
+See [NOTICE](NOTICE) for the upstream attribution and license notice.
+
 ## License
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
