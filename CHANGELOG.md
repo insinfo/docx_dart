@@ -8,6 +8,7 @@
 - Exposed simplified enums `ParagraphAlignment` and `Underline` for inline styles.
 - Exposed internal formatting elements (`InlineParagraphStyle`, `InlineRunStyle`, `ParagraphAlignment`, `Underline`, `DocxUnit`) and `Font` in the barrel file `docx_dart.dart`.
 - Added `font` and `paragraphFormat` properties to `ParagraphStyle` and `CharacterStyle` to enable reading and updating formatting/font details directly from styles.
+- Added `clear()` and `removeParagraph(Paragraph paragraph)` methods to `BlockItemContainer` to allow removing content without raw XML manipulation.
 
 ## 1.1.0
 

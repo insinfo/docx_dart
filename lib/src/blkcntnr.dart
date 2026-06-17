@@ -2,6 +2,7 @@
 /// Based on python-docx: docx/blkcntnr.py
 /// Base class for proxy objects that can contain block items (paragraphs, tables).
 import 'dart:core';
+import 'package:xml/xml.dart';
 import 'package:docx_dart/src/oxml/document.dart';
 import 'package:docx_dart/src/oxml/section.dart';
 import 'package:docx_dart/src/oxml/table.dart';
@@ -177,6 +178,35 @@ class BlockItemContainer extends StoryChild {
           "Cannot get tables from unsupported container type: ${_element.runtimeType}");
     }
     // --- End Correction ---
+  }
+
+  /// Removes the specified [paragraph] from this container.
+  void removeParagraph(Paragraph paragraph) {
+    if (_element is BaseOxmlElement) {
+      (_element as BaseOxmlElement).element.children.remove(paragraph.element.element);
+    } else {
+      throw UnsupportedError(
+          "Cannot remove paragraph from unsupported container type: ${_element.runtimeType}");
+    }
+  }
+
+  /// Removes all block-level content (paragraphs and tables) from this container.
+  void clear() {
+    if (_element is BaseOxmlElement) {
+      final baseElement = _element as BaseOxmlElement;
+      final elementsToRemove = <XmlElement>[];
+      for (final child in baseElement.element.children.whereType<XmlElement>()) {
+        if (child.name.local == 'p' || child.name.local == 'tbl') {
+          elementsToRemove.add(child);
+        }
+      }
+      for (final el in elementsToRemove) {
+        baseElement.element.children.remove(el);
+      }
+    } else {
+      throw UnsupportedError(
+          "Cannot clear unsupported container type: ${_element.runtimeType}");
+    }
   }
 
   /// Internal helper to add a new `<w:p>` element to the container and wrap it.
