@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- Relaxed the `image` dependency constraint to support projects that resolve `archive` 3.x through other packages.
+
 ## 1.0.0
 
 - Initial public release of `docx_dart`.
