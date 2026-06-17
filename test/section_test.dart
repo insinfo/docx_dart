@@ -1,9 +1,7 @@
 import 'package:docx_dart/docx_dart.dart';
-import 'package:docx_dart/src/enum/section.dart';
+
 import 'package:docx_dart/src/oxml/section.dart';
-import 'package:docx_dart/src/shared.dart';
-import 'package:docx_dart/src/table.dart';
-import 'package:docx_dart/src/text/paragraph.dart';
+
 import 'package:test/test.dart';
 import 'package:xml/xml.dart';
 

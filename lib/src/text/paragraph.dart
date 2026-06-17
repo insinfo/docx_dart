@@ -11,6 +11,7 @@ import 'package:docx_dart/src/text/hyperlink.dart';
 import 'package:docx_dart/src/text/parfmt.dart';
 import 'package:docx_dart/src/text/run.dart';
 import 'package:docx_dart/src/types.dart';
+import 'package:docx_dart/src/formatting.dart';
 
 /// Proxy object wrapping a `<w:p>` element.
 class Paragraph extends StoryChild implements ProvidesXmlPart {
@@ -23,7 +24,7 @@ class Paragraph extends StoryChild implements ProvidesXmlPart {
   @override
   StoryPart get part => super.part;
 
-  /// Append a run optionally containing [text] and styled with [style].
+  /// Append a run optionally containing [text] and styled with [style] (or an [InlineRunStyle]).
   Run addRun([String? text, dynamic style]) {
     final r = _p.add_r();
     final run = Run(r, parent);
@@ -31,7 +32,21 @@ class Paragraph extends StoryChild implements ProvidesXmlPart {
       run.text = text;
     }
     if (style != null) {
-      run.style = style;
+      if (style is InlineRunStyle) {
+        if (style.bold) run.font.bold = true;
+        if (style.italic) run.font.italic = true;
+        if (style.underline != Underline.none) {
+          run.font.underline = style.underline.toDocx;
+        }
+        if (style.fontSizePt != null) {
+          run.font.size = Pt(style.fontSizePt!);
+        }
+        if (style.fontFamily != null) {
+          run.font.name = style.fontFamily;
+        }
+      } else {
+        run.style = style;
+      }
     }
     return run;
   }

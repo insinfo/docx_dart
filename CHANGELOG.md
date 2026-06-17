@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0
+
+- Added `InlineParagraphStyle` and `InlineRunStyle` for simplified inline styling.
+- Added `DocxUnit` helper class for easier dimension definitions (`cm` and `pt`).
+- Added `run.addFloatingPicture` to support anchoring images behind text (`<wp:anchor behindDoc="1">`).
+- Exposed simplified enums `ParagraphAlignment` and `Underline` for inline styles.
+- Exposed internal formatting elements (`InlineParagraphStyle`, `InlineRunStyle`, `ParagraphAlignment`, `Underline`, `DocxUnit`) and `Font` in the barrel file `docx_dart.dart`.
+
 ## 1.1.0
 
 - Relaxed the `image` dependency constraint to support projects that resolve `archive` 3.x through other packages.

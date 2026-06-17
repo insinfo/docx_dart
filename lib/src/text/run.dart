@@ -6,6 +6,7 @@ import 'package:docx_dart/src/oxml/text/run.dart';
 import 'package:docx_dart/src/shared.dart';
 import 'package:docx_dart/src/shape.dart';
 import 'package:docx_dart/src/styles/style.dart';
+import 'package:docx_dart/src/text/font_proxy.dart';
 import 'package:docx_dart/src/types.dart';
 
 /// Proxy object wrapping a `<w:r>` element.
@@ -13,6 +14,16 @@ class Run extends StoryChild implements ProvidesXmlPart {
   Run(this._r, ProvidesStoryPart parent) : super(parent);
 
   final CT_R _r;
+
+  /// Character-level formatting for this run (bold, italic, size, etc.).
+  ///
+  /// Example:
+  /// ```dart
+  /// run.font.bold = true;
+  /// run.font.size = Pt(12);
+  /// run.font.name = 'Arial';
+  /// ```
+  Font get font => Font(_r);
 
   @override
   StoryPart get part => super.part;
@@ -37,6 +48,23 @@ class Run extends StoryChild implements ProvidesXmlPart {
     final inline = CT_Inline(inlineElement);
     _r.addDrawing(inline);
     return InlineShape(inline);
+  }
+
+  /// Add a floating picture (behind text) to the end of this run.
+  /// 
+  /// This generates a `<wp:anchor behindDoc="1">` tag.
+  void addFloatingPicture(
+    dynamic imagePathOrStream, {
+    Length? width,
+    Length? height,
+  }) {
+    final anchorElement = part.newPicAnchor(
+      imagePathOrStream,
+      width: width,
+      height: height,
+    );
+    final anchor = CT_Anchor(anchorElement);
+    _r.addDrawing(anchor);
   }
 
   /// Add a tab character to this run.

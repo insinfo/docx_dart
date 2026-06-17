@@ -100,6 +100,26 @@ class StoryPart extends XmlPart {
     );
   }
 
+  /// Returns a newly created `wp:anchor` [XmlElement] for floating images.
+  XmlElement newPicAnchor(
+    dynamic imageDescriptor, {
+    Length? width,
+    Length? height,
+  }) {
+    final (rId, image) = getOrAddImage(imageDescriptor);
+    final (cx, cy) = image.scaledDimensions(width: width, height: height);
+    final shapeId = nextId;
+    final filename = image.filename;
+
+    return OxmlConstructors.newPicAnchor(
+      shapeId: shapeId,
+      rId: rId,
+      filename: filename,
+      cx: cx,
+      cy: cy,
+    );
+  }
+
   /// Next available positive integer id value in this story XML document.
   ///
   /// The value is determined by incrementing the maximum existing integer `@id`

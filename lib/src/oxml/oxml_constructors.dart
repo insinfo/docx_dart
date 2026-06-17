@@ -19,4 +19,15 @@ class OxmlConstructors {
     final inline = CT_Inline.newPicInline(shapeId, rId, filename, cx, cy);
     return inline.element;
   }
+
+  static XmlElement newPicAnchor({
+    required int shapeId,
+    required String rId,
+    required String filename,
+    required Length cx,
+    required Length cy,
+  }) {
+    final anchor = CT_Anchor.newPicAnchor(shapeId, rId, filename, cx, cy);
+    return anchor.element;
+  }
 }

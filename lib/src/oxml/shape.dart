@@ -14,6 +14,70 @@ class CT_Anchor extends BaseOxmlElement {
   CT_Anchor(super.element);
   static XmlElement create() => OxmlElement(qnTagName);
   static final qnTagName = qn('wp:anchor');
+
+  static CT_Anchor newAnchor(
+      Length cx, Length cy, int shapeId, CT_Picture pic) {
+    final anchorElement = parseXml(_anchorXmlTemplate());
+    final anchor = CT_Anchor(anchorElement);
+    
+    // Set extent
+    final extentElement = anchor.childOrNull(CT_PositiveSize2D.qnExtent);
+    if (extentElement != null) {
+      final extent = CT_PositiveSize2D(extentElement);
+      extent.cx = cx;
+      extent.cy = cy;
+    }
+    
+    // Set docPr
+    final docPrElement = anchor.childOrNull(CT_NonVisualDrawingProps.qnDocPr);
+    if (docPrElement != null) {
+      final docPr = CT_NonVisualDrawingProps(docPrElement);
+      docPr.id = shapeId;
+      docPr.name = "Picture $shapeId";
+    }
+
+    // Set graphic
+    final graphicElement = anchor.childOrNull(CT_GraphicalObject.qnTagName);
+    if (graphicElement != null) {
+      final graphic = CT_GraphicalObject(graphicElement);
+      final graphicData = graphic.getOrAddGraphicData();
+      graphicData.uri = nsmap['pic']!;
+      graphicData._insertPic(pic);
+    }
+    
+    return anchor;
+  }
+
+  static CT_Anchor newPicAnchor(
+      int shapeId, String rId, String filename, Length cx, Length cy) {
+    final picId = 0;
+    final pic = CT_Picture.newPicture(picId, filename, rId, cx, cy);
+    return CT_Anchor.newAnchor(cx, cy, shapeId, pic);
+  }
+
+  static String _anchorXmlTemplate() {
+    return '''
+      <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251658240" behindDoc="1" locked="0" layoutInCell="1" allowOverlap="1" ${nsdecls(['wp', 'a', 'pic', 'r'])}>
+        <wp:simplePos x="0" y="0"/>
+        <wp:positionH relativeFrom="margin">
+          <wp:posOffset>0</wp:posOffset>
+        </wp:positionH>
+        <wp:positionV relativeFrom="margin">
+          <wp:posOffset>0</wp:posOffset>
+        </wp:positionV>
+        <wp:extent cx="914400" cy="914400"/>
+        <wp:effectExtent l="0" t="0" r="0" b="0"/>
+        <wp:wrapNone/>
+        <wp:docPr id="0" name="Picture 0"/>
+        <wp:cNvGraphicFramePr>
+          <a:graphicFrameLocks xmlns:a="${nsmap['a']}" noChangeAspect="1"/>
+        </wp:cNvGraphicFramePr>
+        <a:graphic xmlns:a="${nsmap['a']}">
+          <a:graphicData uri="${nsmap['pic']}"/>
+        </a:graphic>
+      </wp:anchor>
+    ''';
+  }
 }
 
 /// `<a:blip>` element, specifies image source and adjustments.

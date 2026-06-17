@@ -11,6 +11,7 @@ import 'package:docx_dart/src/text/paragraph.dart';
 import 'package:docx_dart/src/styles/style.dart';
 import 'package:docx_dart/src/table.dart';
 import 'package:docx_dart/src/types.dart';
+import 'package:docx_dart/src/formatting.dart';
 
 // Assuming these CT_* classes are defined in their respective oxml files
 // and have the necessary methods like add_p(), _insert_tbl(), p_lst, tbl_lst,
@@ -62,14 +63,33 @@ class BlockItemContainer extends StoryChild {
 
   /// Return paragraph newly added to the end of the content in this container.
   /// [text] is added in a single run. [style] may be a style name or
-  /// a [ParagraphStyle] instance.
+  /// a [ParagraphStyle] instance (or an [InlineParagraphStyle] to directly apply inline formatting).
   Paragraph addParagraph({String text = "", dynamic style}) {
     final paragraph = _addParagraph(); // Gets API-level Paragraph wrapper
     if (text.isNotEmpty) {
       paragraph.addRun(text);
     }
     if (style != null) {
-      paragraph.style = style; // Paragraph handles resolving style ids
+      if (style is InlineParagraphStyle) {
+        if (style.alignment != null) {
+          paragraph.alignment = style.alignment!.toDocx;
+        }
+        if (style.spaceBeforePt != null) {
+          paragraph.paragraphFormat.spaceBefore = Pt(style.spaceBeforePt!);
+        }
+        if (style.spaceAfterPt != null) {
+          paragraph.paragraphFormat.spaceAfter = Pt(style.spaceAfterPt!);
+        }
+        if (style.lineSpacing != null) {
+          paragraph.paragraphFormat.lineSpacing = style.lineSpacing;
+        }
+        if (style.firstLineIndentCm != null) {
+          paragraph.paragraphFormat.firstLineIndent =
+              Cm(style.firstLineIndentCm!);
+        }
+      } else {
+        paragraph.style = style; // Paragraph handles resolving style ids
+      }
     }
     return paragraph;
   }
