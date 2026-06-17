@@ -1,20 +1,45 @@
 import 'package:docx_dart/src/enum/text.dart';
 import 'package:docx_dart/src/oxml/text/paragraph.dart';
 import 'package:docx_dart/src/oxml/text/parfmt.dart';
+import 'package:docx_dart/src/oxml/styles.dart' show CT_Style;
+import 'package:docx_dart/src/oxml/xmlchemy.dart' show BaseOxmlElement;
 import 'package:docx_dart/src/shared.dart';
 import 'package:docx_dart/src/text/tabstops.dart';
 
 /// Provides access to paragraph-level formatting options.
 class ParagraphFormat extends ElementProxy {
-  ParagraphFormat(CT_P paragraph)
-      : _paragraph = paragraph,
-        super(paragraph);
+  ParagraphFormat(BaseOxmlElement element)
+      : _element = element,
+        super(element);
 
-  final CT_P _paragraph;
+  final BaseOxmlElement _element;
   TabStops? _tabStops;
 
-  CT_PPr? get _pPr => _paragraph.pPr;
-  CT_PPr get _pPrRequired => _paragraph.getOrAddPPr();
+  CT_PPr? get _pPr {
+    final el = _element;
+    if (el is CT_P) {
+      return el.pPr;
+    } else if (el is CT_Style) {
+      return el.pPrElement;
+    }
+    final pPr = _element.childOrNull(CT_PPr.qnTagName);
+    return pPr != null ? CT_PPr(pPr) : null;
+  }
+
+  CT_PPr get _pPrRequired {
+    final el = _element;
+    if (el is CT_P) {
+      return el.getOrAddPPr();
+    } else if (el is CT_Style) {
+      return el.getOrAddPPr();
+    }
+    var pPr = _element.childOrNull(CT_PPr.qnTagName);
+    if (pPr == null) {
+      pPr = CT_PPr.create();
+      _element.element.children.insert(0, pPr);
+    }
+    return CT_PPr(pPr);
+  }
 
   WD_PARAGRAPH_ALIGNMENT? get alignment => _pPr?.jcVal;
   set alignment(WD_PARAGRAPH_ALIGNMENT? value) => _pPrRequired.jcVal = value;
@@ -114,7 +139,7 @@ class ParagraphFormat extends ElementProxy {
   Length? get spaceBefore => _pPr?.spacingBefore;
   set spaceBefore(Length? value) => _pPrRequired.spacingBefore = value;
 
-  TabStops get tabStops => _tabStops ??= TabStops(_paragraph.getOrAddPPr());
+  TabStops get tabStops => _tabStops ??= TabStops(_pPrRequired);
 
   bool? get widowControl => _pPr?.widowControlVal;
   set widowControl(bool? value) => _pPrRequired.widowControlVal = value;

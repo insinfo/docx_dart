@@ -105,4 +105,35 @@ void main() {
       expect(xml, contains('distT="0"'));
     });
   });
+
+  group('Style Formatting API', () {
+    test('ParagraphStyle exposes paragraphFormat and font properties', () {
+      final doc = docx.loadDocxDocument();
+      final normalStyle = doc.styles['Normal'];
+      expect(normalStyle, isA<docx.ParagraphStyle>());
+      
+      final pStyle = normalStyle as docx.ParagraphStyle;
+      
+      pStyle.paragraphFormat.spaceBefore = Pt(12.0);
+      expect(pStyle.paragraphFormat.spaceBefore?.pt, closeTo(12.0, 0.001));
+      
+      pStyle.font.bold = true;
+      expect(pStyle.font.bold, isTrue);
+    });
+
+    test('CharacterStyle exposes font properties', () {
+      final doc = docx.loadDocxDocument();
+      final charStyle = doc.styles.addStyle('CustomCharStyle', docx.WD_STYLE_TYPE.CHARACTER);
+      expect(charStyle, isA<docx.CharacterStyle>());
+      
+      final cStyle = charStyle as docx.CharacterStyle;
+      cStyle.font.bold = true;
+      cStyle.font.name = 'Courier New';
+      cStyle.font.size = Pt(10.0);
+      
+      expect(cStyle.font.bold, isTrue);
+      expect(cStyle.font.name, equals('Courier New'));
+      expect(cStyle.font.size?.pt, closeTo(10.0, 0.001));
+    });
+  });
 }

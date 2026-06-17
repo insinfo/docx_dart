@@ -6,9 +6,12 @@ import 'package:xml/xml.dart';
 
 import 'package:docx_dart/src/enum/style.dart';
 import 'package:docx_dart/src/oxml/ns.dart';
+import 'package:docx_dart/src/oxml/styles.dart' show CT_Style;
 import 'package:docx_dart/src/oxml/xmlchemy.dart';
 import 'package:docx_dart/src/shared.dart';
 import 'package:docx_dart/src/styles/babel_fish.dart';
+import 'package:docx_dart/src/text/font_proxy.dart' show Font;
+import 'package:docx_dart/src/text/parfmt.dart' show ParagraphFormat;
 import 'package:docx_dart/src/types.dart';
 
 class StyleFactory {
@@ -51,11 +54,20 @@ class StyleFactory {
 class ParagraphStyle extends BaseStyle {
   ParagraphStyle(BaseOxmlElement element, [ProvidesXmlPart? parent])
       : super(element, parent);
+
+  /// Paragraph-level formatting options for this style.
+  ParagraphFormat get paragraphFormat => ParagraphFormat(_style);
+
+  /// Character-level formatting options (font) for this style.
+  Font get font => Font(_style);
 }
 
 class CharacterStyle extends BaseStyle {
   CharacterStyle(BaseOxmlElement element, [ProvidesXmlPart? parent])
       : super(element, parent);
+
+  /// Character-level formatting options (font) for this style.
+  Font get font => Font(_style);
 }
 
 class TableStyle extends ParagraphStyle {
@@ -71,6 +83,8 @@ class _NumberingStyle extends BaseStyle {
 class BaseStyle extends ElementProxy {
   BaseStyle(BaseOxmlElement element, [ProvidesXmlPart? parent])
       : super(element, parent);
+
+  CT_Style get _style => CT_Style(element.element);
 
   XmlElement get _xml => element.element;
 

@@ -1,9 +1,11 @@
 import 'package:docx_dart/src/enum/text.dart';
 import 'package:docx_dart/src/oxml/text/font.dart';
 import 'package:docx_dart/src/oxml/text/run.dart';
+import 'package:docx_dart/src/oxml/styles.dart' show CT_Style;
+import 'package:docx_dart/src/oxml/xmlchemy.dart' show BaseOxmlElement;
 import 'package:docx_dart/src/shared.dart';
 
-/// Proxy object for character-level formatting (font) of a [Run].
+/// Proxy object for character-level formatting (font) of a [Run] or [Style].
 ///
 /// Provides convenient access to run properties such as bold, italic,
 /// font name, font size, underline, color, etc.
@@ -17,12 +19,36 @@ import 'package:docx_dart/src/shared.dart';
 /// run.font.underline = WD_UNDERLINE.SINGLE;
 /// ```
 class Font {
-  final CT_R _r;
+  final BaseOxmlElement _element;
 
-  Font(this._r);
+  Font(this._element);
 
-  CT_RPr get _rPr => _r.getOrAddRPr();
-  CT_RPr? get _rPrOrNull => _r.rPr;
+  CT_RPr get _rPr {
+    final el = _element;
+    if (el is CT_R) {
+      return el.getOrAddRPr();
+    } else if (el is CT_Style) {
+      return el.getOrAddRPr();
+    }
+    // Generic fallback
+    var rPr = _element.childOrNull(CT_RPr.qnTagName);
+    if (rPr == null) {
+      rPr = CT_RPr.create();
+      _element.element.children.insert(0, rPr);
+    }
+    return CT_RPr(rPr);
+  }
+
+  CT_RPr? get _rPrOrNull {
+    final el = _element;
+    if (el is CT_R) {
+      return el.rPr;
+    } else if (el is CT_Style) {
+      return el.rPrElement;
+    }
+    final rPr = _element.childOrNull(CT_RPr.qnTagName);
+    return rPr != null ? CT_RPr(rPr) : null;
+  }
 
   /// Whether this run is bold. `null` means inherited from style.
   bool? get bold => _rPrOrNull?.bold;

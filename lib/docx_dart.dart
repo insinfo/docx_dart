@@ -39,7 +39,8 @@ export 'src/table.dart' show Table;
 export 'src/shape.dart' show InlineShape, InlineShapes;
 
 // --- Styles ---
-export 'src/styles/style.dart' show CharacterStyle, ParagraphStyle;
+export 'src/styles/style.dart' show BaseStyle, CharacterStyle, ParagraphStyle;
+export 'src/enum/style.dart' show WD_BUILTIN_STYLE, WD_STYLE, WD_STYLE_TYPE;
 
 // --- Settings ---
 export 'src/settings.dart' show Settings;

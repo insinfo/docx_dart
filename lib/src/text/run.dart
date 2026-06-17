@@ -8,12 +8,16 @@ import 'package:docx_dart/src/shape.dart';
 import 'package:docx_dart/src/styles/style.dart';
 import 'package:docx_dart/src/text/font_proxy.dart';
 import 'package:docx_dart/src/types.dart';
+import 'package:xml/xml.dart';
 
 /// Proxy object wrapping a `<w:r>` element.
 class Run extends StoryChild implements ProvidesXmlPart {
   Run(this._r, ProvidesStoryPart parent) : super(parent);
 
   final CT_R _r;
+  
+  /// Exposes the underlying CT_R XML element wrapper.
+  CT_R get element => _r;
 
   /// Character-level formatting for this run (bold, italic, size, etc.).
   ///
@@ -57,6 +61,8 @@ class Run extends StoryChild implements ProvidesXmlPart {
     dynamic imagePathOrStream, {
     Length? width,
     Length? height,
+    String relativeFromH = 'margin',
+    String relativeFromV = 'margin',
   }) {
     final anchorElement = part.newPicAnchor(
       imagePathOrStream,
@@ -64,6 +70,15 @@ class Run extends StoryChild implements ProvidesXmlPart {
       height: height,
     );
     final anchor = CT_Anchor(anchorElement);
+    
+    for (final child in anchorElement.children.whereType<XmlElement>()) {
+      if (child.name.local == 'positionH') {
+        child.setAttribute('relativeFrom', relativeFromH);
+      } else if (child.name.local == 'positionV') {
+        child.setAttribute('relativeFrom', relativeFromV);
+      }
+    }
+
     _r.addDrawing(anchor);
   }
 
